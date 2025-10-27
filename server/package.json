@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "build": "echo \"No build needed\"",
+    "build": "echo 'No build needed for server'",
     "start": "node index.js"
   },
   "dependencies": {
