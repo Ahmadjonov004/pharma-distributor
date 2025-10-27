@@ -1,0 +1,94 @@
+{
+  "settings": {
+    "currency": "UZS",
+    "distributorName": "Pharma Distributor"
+  },
+  "medicines": [
+    {
+      "id": "m1",
+      "name": "Paracetamol 500mg",
+      "sku": "PARA-500",
+      "unit": "tablet",
+      "purchasePrice": 350,
+      "salePrice": 500,
+      "expiry": "2026-03-01",
+      "stock": 1200,
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "m2",
+      "name": "Amoxicillin 250mg",
+      "sku": "AMOX-250",
+      "unit": "capsule",
+      "purchasePrice": 900,
+      "salePrice": 1200,
+      "expiry": "2026-07-01",
+      "stock": 600,
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "cyf0plngmh8oyv0y",
+      "createdAt": "2025-10-27T05:22:56.530Z",
+      "name": "versus",
+      "sku": "2022202",
+      "unit": "tablet",
+      "purchasePrice": 8,
+      "salePrice": 12,
+      "expiry": "2025-10-29",
+      "stock": 0
+    }
+  ],
+  "pharmacies": [
+    {
+      "id": "p1",
+      "name": "Darmon Dorixona #1",
+      "phone": "+998 90 123 45 67",
+      "address": "Fargʻona, Margʻilon ko‘chasi 12",
+      "contact": "Alisher",
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "jyqn3pzemh8p0ujq",
+      "createdAt": "2025-10-27T05:24:29.222Z",
+      "name": "shinam",
+      "phone": "+998976611747",
+      "address": "ahmadjonovasilbek624@gmail.com",
+      "contact": "asilbekkk"
+    }
+  ],
+  "distributions": [
+    {
+      "id": "d1",
+      "pharmacyId": "p1",
+      "date": "2025-10-01T10:00:00.000Z",
+      "items": [
+        {
+          "medicineId": "m1",
+          "quantity": 200,
+          "unitPrice": 500
+        },
+        {
+          "medicineId": "m2",
+          "quantity": 50,
+          "unitPrice": 1200,
+          "discount": 20000
+        }
+      ],
+      "notes": "Boshlang‘ich yetkazib berish"
+    },
+    {
+      "id": "d5dgjmqzmh8ozu87",
+      "pharmacyId": "p1",
+      "date": "2025-10-27T00:00:00.000Z",
+      "items": [
+        {
+          "medicineId": "cyf0plngmh8oyv0y",
+          "quantity": 112000,
+          "unitPrice": 14,
+          "discount": 11
+        }
+      ],
+      "notes": "sotildi"
+    }
+  ]
+}
