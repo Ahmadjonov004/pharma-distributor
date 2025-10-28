@@ -12,7 +12,7 @@
       "purchasePrice": 350,
       "salePrice": 500,
       "expiry": "2026-03-01",
-      "stock": 1200,
+      "stock": 1198,
       "createdAt": "2025-01-01T00:00:00.000Z"
     },
     {
@@ -23,7 +23,7 @@
       "purchasePrice": 900,
       "salePrice": 1200,
       "expiry": "2026-07-01",
-      "stock": 600,
+      "stock": 599,
       "createdAt": "2025-01-01T00:00:00.000Z"
     },
     {
@@ -36,24 +36,51 @@
       "salePrice": 12,
       "expiry": "2025-10-29",
       "stock": 0
+    },
+    {
+      "id": "bwinuvx3mhat3p09",
+      "createdAt": "2025-10-28T16:54:12.825Z",
+      "name": "lancelot",
+      "sku": "asas",
+      "unit": "tablet",
+      "purchasePrice": 22000,
+      "salePrice": 6000,
+      "expiry": "2025-10-30",
+      "stock": 305
     }
   ],
   "pharmacies": [
     {
-      "id": "p1",
-      "name": "Darmon Dorixona #1",
-      "phone": "+998 90 123 45 67",
-      "address": "Fargʻona, Margʻilon ko‘chasi 12",
-      "contact": "Alisher",
-      "createdAt": "2025-01-01T00:00:00.000Z"
+      "id": "ptihzf6kmhat5p6d",
+      "createdAt": "2025-10-28T16:55:46.356Z",
+      "name": "asilbek",
+      "phone": "+998959741747",
+      "address": "kaldushon",
+      "contact": "ahmadjonov"
     },
     {
-      "id": "jyqn3pzemh8p0ujq",
-      "createdAt": "2025-10-27T05:24:29.222Z",
-      "name": "shinam",
-      "phone": "+998976611747",
-      "address": "ahmadjonovasilbek624@gmail.com",
-      "contact": "asilbekkk"
+      "id": "zgv4ors3mhatyux3",
+      "createdAt": "2025-10-28T17:18:26.822Z",
+      "name": "aslmed",
+      "phone": "+9979855855",
+      "address": "fargona",
+      "contact": "sardor"
+    },
+    {
+      "id": "yfbxf51ymhaut09k",
+      "createdAt": "2025-10-28T17:41:53.431Z",
+      "name": "n x c",
+      "phone": "xc ",
+      "address": "xc ",
+      "contact": "xc xc xc"
+    },
+    {
+      "id": "nfexl6h3mhaut5z3",
+      "createdAt": "2025-10-28T17:42:00.830Z",
+      "name": "xc ",
+      "phone": "xc ",
+      "address": "xc ",
+      "contact": "xc "
     }
   ],
   "distributions": [
@@ -89,6 +116,48 @@
         }
       ],
       "notes": "sotildi"
+    },
+    {
+      "id": "jwkgtb7smh8pvfhj",
+      "pharmacyId": "p1",
+      "date": "2025-10-27T00:00:00.000Z",
+      "items": [
+        {
+          "medicineId": "m2",
+          "quantity": 1,
+          "unitPrice": 1200,
+          "discount": 0
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "irpmsqr7mhatm2y4",
+      "pharmacyId": "ptihzf6kmhat5p6d",
+      "date": "2025-10-28T00:00:00.000Z",
+      "items": [
+        {
+          "medicineId": "m1",
+          "quantity": 1,
+          "unitPrice": 500,
+          "discount": 0
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "9d8z74snmhaukahc",
+      "pharmacyId": "zgv4ors3mhatyux3",
+      "date": "2025-10-28T00:00:00.000Z",
+      "items": [
+        {
+          "medicineId": "m1",
+          "quantity": 1,
+          "unitPrice": 500,
+          "discount": 0
+        }
+      ],
+      "notes": "asc"
     }
   ]
 }

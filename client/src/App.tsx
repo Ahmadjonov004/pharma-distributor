@@ -13,8 +13,8 @@ function Frame(){
     <div className='min-h-screen grid md:grid-cols-[260px_1fr]'>
       <aside className='bg-white shadow-soft md:sticky md:top-0 h-full'>
         <div className='p-5 border-b'>
-          <div className='text-lg font-semibold'>💊 Pharma Distributor</div>
-          <div className='text-xs text-slate-500'>React + TS + Vite</div>
+          <div className='text-lg font-semibold'>💊Narimon Pharma</div>
+          <div className='text-xs text-slate-500'>Asilbek</div>
         </div>
         <nav className='p-3 space-y-1'>
           {nav.map(n=>{ const Icon=n.icon as any; return (
