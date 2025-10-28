@@ -5,17 +5,6 @@
   },
   "medicines": [
     {
-      "id": "m1",
-      "name": "Paracetamol 500mg",
-      "sku": "PARA-500",
-      "unit": "tablet",
-      "purchasePrice": 350,
-      "salePrice": 500,
-      "expiry": "2026-03-01",
-      "stock": 1198,
-      "createdAt": "2025-01-01T00:00:00.000Z"
-    },
-    {
       "id": "m2",
       "name": "Amoxicillin 250mg",
       "sku": "AMOX-250",
@@ -23,7 +12,7 @@
       "purchasePrice": 900,
       "salePrice": 1200,
       "expiry": "2026-07-01",
-      "stock": 599,
+      "stock": 55856,
       "createdAt": "2025-01-01T00:00:00.000Z"
     },
     {
@@ -35,7 +24,7 @@
       "purchasePrice": 8,
       "salePrice": 12,
       "expiry": "2025-10-29",
-      "stock": 0
+      "stock": 13
     },
     {
       "id": "bwinuvx3mhat3p09",
@@ -47,6 +36,39 @@
       "salePrice": 6000,
       "expiry": "2025-10-30",
       "stock": 305
+    },
+    {
+      "id": "u9svco3vmhavx6gh",
+      "createdAt": "2025-10-28T18:13:07.696Z",
+      "name": "ascascascacs",
+      "sku": "32",
+      "unit": "tablet",
+      "purchasePrice": 2626,
+      "salePrice": 226,
+      "expiry": "2025-10-02",
+      "stock": 26626
+    },
+    {
+      "id": "xg158p60mhavxkiq",
+      "createdAt": "2025-10-28T18:13:25.921Z",
+      "name": "ascacs",
+      "sku": "ascasc",
+      "unit": "tablet",
+      "purchasePrice": 453,
+      "salePrice": 453,
+      "expiry": "2025-10-29",
+      "stock": 453
+    },
+    {
+      "id": "10xymv5bmhavyhva",
+      "createdAt": "2025-10-28T18:14:09.142Z",
+      "name": "dvsdvsd",
+      "sku": "sdvsdv",
+      "unit": "g",
+      "purchasePrice": 453,
+      "salePrice": 5453,
+      "expiry": "2025-10-31",
+      "stock": 453453
     }
   ],
   "pharmacies": [
