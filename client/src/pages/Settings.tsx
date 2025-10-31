@@ -1,7 +1,7 @@
 export default function Settings(){
   return (
     <div className='space-y-6'>
-      <h1 className='text-2xl font-semibold'>Settings</h1>
+      <h1 className='text-2xl font-semibold'>sozlamalar</h1>
       <div className='bg-white rounded-2xl p-4 shadow-soft'>
         <div className='text-slate-600'>Currency: <b>UZS</b> (server db.json - settings)</div>
         <div className='text-slate-600'>Distributor: <b>Pharma Distributor</b></div>

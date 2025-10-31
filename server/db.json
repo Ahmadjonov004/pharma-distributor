@@ -12,52 +12,8 @@
       "purchasePrice": 900,
       "salePrice": 1200,
       "expiry": "2026-07-01",
-      "stock": 55856,
+      "stock": 55861,
       "createdAt": "2025-01-01T00:00:00.000Z"
-    },
-    {
-      "id": "cyf0plngmh8oyv0y",
-      "createdAt": "2025-10-27T05:22:56.530Z",
-      "name": "versus",
-      "sku": "2022202",
-      "unit": "tablet",
-      "purchasePrice": 8,
-      "salePrice": 12,
-      "expiry": "2025-10-29",
-      "stock": 13
-    },
-    {
-      "id": "bwinuvx3mhat3p09",
-      "createdAt": "2025-10-28T16:54:12.825Z",
-      "name": "lancelot",
-      "sku": "asas",
-      "unit": "tablet",
-      "purchasePrice": 22000,
-      "salePrice": 6000,
-      "expiry": "2025-10-30",
-      "stock": 305
-    },
-    {
-      "id": "u9svco3vmhavx6gh",
-      "createdAt": "2025-10-28T18:13:07.696Z",
-      "name": "ascascascacs",
-      "sku": "32",
-      "unit": "tablet",
-      "purchasePrice": 2626,
-      "salePrice": 226,
-      "expiry": "2025-10-02",
-      "stock": 26626
-    },
-    {
-      "id": "xg158p60mhavxkiq",
-      "createdAt": "2025-10-28T18:13:25.921Z",
-      "name": "ascacs",
-      "sku": "ascasc",
-      "unit": "tablet",
-      "purchasePrice": 453,
-      "salePrice": 453,
-      "expiry": "2025-10-29",
-      "stock": 453
     },
     {
       "id": "10xymv5bmhavyhva",
