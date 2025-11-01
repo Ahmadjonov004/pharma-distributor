@@ -55,39 +55,6 @@
   ],
   "distributions": [
     {
-      "id": "d1",
-      "pharmacyId": "p1",
-      "date": "2025-10-01T10:00:00.000Z",
-      "items": [
-        {
-          "medicineId": "m1",
-          "quantity": 200,
-          "unitPrice": 500
-        },
-        {
-          "medicineId": "m2",
-          "quantity": 50,
-          "unitPrice": 1200,
-          "discount": 20000
-        }
-      ],
-      "notes": "Boshlang‘ich yetkazib berish"
-    },
-    {
-      "id": "d5dgjmqzmh8ozu87",
-      "pharmacyId": "p1",
-      "date": "2025-10-27T00:00:00.000Z",
-      "items": [
-        {
-          "medicineId": "cyf0plngmh8oyv0y",
-          "quantity": 112000,
-          "unitPrice": 14,
-          "discount": 11
-        }
-      ],
-      "notes": "sotildi"
-    },
-    {
       "id": "jwkgtb7smh8pvfhj",
       "pharmacyId": "p1",
       "date": "2025-10-27T00:00:00.000Z",
@@ -114,20 +81,6 @@
         }
       ],
       "notes": ""
-    },
-    {
-      "id": "9d8z74snmhaukahc",
-      "pharmacyId": "zgv4ors3mhatyux3",
-      "date": "2025-10-28T00:00:00.000Z",
-      "items": [
-        {
-          "medicineId": "m1",
-          "quantity": 1,
-          "unitPrice": 500,
-          "discount": 0
-        }
-      ],
-      "notes": "asc"
     }
   ]
 }
