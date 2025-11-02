@@ -51,7 +51,6 @@ export default function Tarqatish(){
                 <th className='p-2'>Dori nomi</th>
                 <th className='p-2'>Soni</th>
                 <th className='p-2'>Narxi</th>
-                <th className='p-2'>Chegirma</th>
                 <th className='p-2'>Jami</th>
                 <th></th>
               </tr>
@@ -72,7 +71,7 @@ export default function Tarqatish(){
 
                     <td className='p-2'><input className='border rounded-lg w-28 p-2' type='number' value={l.unitPrice} onChange={e=>{ const clone=[...lines]; clone[idx].unitPrice=Number(e.target.value); setLines(clone)}}/></td>
 
-                    <td className='p-2'><input className='border rounded-lg w-20 p-2' type='number' value={l.discount} onChange={e=>{ const clone=[...lines]; clone[idx].discount=Number(e.target.value); setLines(clone)}}/></td>
+                    {/* <td className='p-2'><input className='border rounded-lg w-20 p-2' type='number' value={l.discount} onChange={e=>{ const clone=[...lines]; clone[idx].discount=Number(e.target.value); setLines(clone)}}/></td> */}
 
                     <td className='p-2 font-semibold text-slate-700'>{money(lineTotal)}</td>
 

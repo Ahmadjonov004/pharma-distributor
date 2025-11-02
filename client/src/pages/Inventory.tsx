@@ -128,19 +128,19 @@ export default function Inventory() {
                 onChange={(e) => setForm({ ...form, unit: e.target.value })}
               >
                 <option>tablet</option>
-                <option>capsule</option>
+                <option>capsula</option>
                 <option>ml</option>
-                <option>g</option>
-                <option>pack</option>
+                <option>maz</option>
+                <option>sirop</option>
                 <option>bottle</option>
-                <option>other</option>
+                <option>boshqa</option>
               </select>
             </div>
 
             {[
               { label: "Xarid narxi (so‘m)", key: "purchasePrice" },
               { label: "Sotuv narxi (so‘m)", key: "salePrice" },
-              { label: "Boshlang‘ich miqdor", key: "stock" },
+              { label: "Miqdor", key: "stock" },
             ].map((f) => (
               <div key={f.key} className="flex flex-col">
                 <label className="text-sm font-medium text-slate-700 mb-1">{f.label}</label>

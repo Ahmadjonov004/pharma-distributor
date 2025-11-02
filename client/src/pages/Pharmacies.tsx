@@ -94,7 +94,7 @@ const saveEdit = async () => {
         <table className="w-full text-sm min-w-[650px]">
           <thead className="border-b text-gray-500">
             <tr>
-              <th className="py-2 text-left">Nomi</th>
+              <th className="py-2 text-left">Ismi</th>
               <th className="text-left">Telefon</th>
               <th className="text-left">Manzil</th>
               <th className="text-left">Mas’ul shaxs</th>

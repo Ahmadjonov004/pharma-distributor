@@ -12,19 +12,19 @@
       "purchasePrice": 900,
       "salePrice": 1200,
       "expiry": "2026-07-01",
-      "stock": 55861,
+      "stock": 0,
       "createdAt": "2025-01-01T00:00:00.000Z"
     },
     {
-      "id": "10xymv5bmhavyhva",
-      "createdAt": "2025-10-28T18:14:09.142Z",
-      "name": "dvsdvsd",
-      "sku": "sdvsdv",
-      "unit": "g",
-      "purchasePrice": 453,
-      "salePrice": 5453,
-      "expiry": "2025-10-31",
-      "stock": 453453
+      "id": "1ybpso75mhhvtt3g",
+      "createdAt": "2025-11-02T15:44:53.643Z",
+      "name": "midnight",
+      "sku": "MND",
+      "unit": "tablet",
+      "purchasePrice": 20000,
+      "salePrice": 25000,
+      "expiry": "2025-11-30",
+      "stock": 100
     }
   ],
   "pharmacies": [
@@ -55,20 +55,6 @@
   ],
   "distributions": [
     {
-      "id": "jwkgtb7smh8pvfhj",
-      "pharmacyId": "p1",
-      "date": "2025-10-27T00:00:00.000Z",
-      "items": [
-        {
-          "medicineId": "m2",
-          "quantity": 1,
-          "unitPrice": 1200,
-          "discount": 0
-        }
-      ],
-      "notes": ""
-    },
-    {
       "id": "irpmsqr7mhatm2y4",
       "pharmacyId": "ptihzf6kmhat5p6d",
       "date": "2025-10-28T00:00:00.000Z",
@@ -77,6 +63,48 @@
           "medicineId": "m1",
           "quantity": 1,
           "unitPrice": 500,
+          "discount": 0
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "6frf1roumhhdedjn",
+      "pharmacyId": "ptihzf6kmhat5p6d",
+      "date": "2025-11-02T00:00:00.000Z",
+      "items": [
+        {
+          "medicineId": "m2",
+          "quantity": 120,
+          "unitPrice": 10200,
+          "discount": 0
+        }
+      ],
+      "notes": "abshcasjhbajsajs as cja sc naj scasc asc"
+    },
+    {
+      "id": "u26xalb6mhhvufel",
+      "pharmacyId": "ptihzf6kmhat5p6d",
+      "date": "2025-11-02T00:00:00.000Z",
+      "items": [
+        {
+          "medicineId": "m2",
+          "quantity": 200,
+          "unitPrice": 12000,
+          "discount": 0
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "4uqu77yjmhhwrscq",
+      "pharmacyId": "nfexl6h3mhaut5z3",
+      "date": "2025-11-02T00:00:00.000Z",
+      "items": [
+        {
+          "medicineId": "m2",
+          "quantity": 200,
+          "unitPrice": 10800,
           "discount": 0
         }
       ],
