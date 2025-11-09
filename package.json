@@ -1,20 +1,9 @@
 {
-  "name": "pharma-fullstack",
-  "private": true,
+  "name": "pharma-client",
   "version": "1.0.0",
   "scripts": {
-    "setup": "npm --prefix client i && npm --prefix server i",
-    "dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
-    "dev:client": "npm --prefix client run dev",
-    "dev:server": "npm --prefix server run dev",
-    "build": "npm --prefix client run build && npm --prefix server run build",
-    "start": "npm --prefix server run start"
-  },
-  "devDependencies": {
-    "concurrently": "^9.0.1"
-  },
-  "dependencies": {
-    "@shadcn/ui": "^0.0.4",
-    "rxjs": "^7.8.2"
+    "dev": "node ./node_modules/vite/bin/vite.js",
+    "build": "tsc -b && vite build && react-scripts build",
+    "preview": "vite preview"
   }
 }
