@@ -13,6 +13,7 @@ export default function Inventory() {
     salePrice: 0,
     expiry: "",
     stock: 0,
+    supplier: "",
   });
   const [editItem, setEditItem] = useState<Medicine | null>(null);
   const [deleteItem, setDeleteItem] = useState<Medicine | null>(null);
@@ -61,6 +62,7 @@ export default function Inventory() {
       salePrice: 0,
       expiry: "",
       stock: 0,
+      supplier: "",
     });
     refresh();
   };
@@ -108,6 +110,7 @@ export default function Inventory() {
             {[
               { label: "Dori nomi", key: "name", placeholder: "Masalan: Paratsetamol" },
               { label: "SKU kodi", key: "sku", placeholder: "Masalan: PCT100" },
+              { label: "Firmaning nomi", key: "supplier", placeholder: "Masalan: Farmaland" },
             ].map((f) => (
               <div key={f.key} className="flex flex-col">
                 <label className="text-sm font-medium text-slate-700 mb-1">{f.label}</label>
@@ -188,6 +191,7 @@ export default function Inventory() {
               {[
                 { key: "name", label: "Nomi" },
                 { key: "sku", label: "SKU" },
+                { key: "supplier", label: "Firma" },
                 { key: "unit", label: "Birlik" },
                 { key: "expiry", label: "Yaroqlilik" },
                 { key: "purchasePrice", label: "Xarid" },
@@ -214,6 +218,7 @@ export default function Inventory() {
               >
                 <td className="py-2 font-medium">{m.name}</td>
                 <td>{m.sku}</td>
+                <td>{m.supplier || "-"}</td>
                 <td>{m.unit}</td>
                 <td>{shortDate(m.expiry)}</td>
                 <td>{money(m.purchasePrice)}</td>
@@ -279,6 +284,7 @@ export default function Inventory() {
           >
             <h2 className="text-xl font-semibold mb-2">{selectedItem.name}</h2>
             <p>SKU: {selectedItem.sku}</p>
+            <p>Firma: {selectedItem.supplier || "-"}</p>
             <p>Birlik: {selectedItem.unit}</p>
             <p>Yaroqlilik: {shortDate(selectedItem.expiry)}</p>
             <p>Xarid narxi: {money(selectedItem.purchasePrice)}</p>

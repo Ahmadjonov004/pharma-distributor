@@ -24,7 +24,19 @@
       "purchasePrice": 20000,
       "salePrice": 25000,
       "expiry": "2025-11-30",
-      "stock": 100
+      "stock": 99
+    },
+    {
+      "id": "d6axhhavmhu5ou7f",
+      "createdAt": "2025-11-11T05:54:12.075Z",
+      "name": "asas",
+      "sku": "asd",
+      "unit": "tablet",
+      "purchasePrice": 12000,
+      "salePrice": 14000,
+      "expiry": "2025-11-12",
+      "stock": 100,
+      "supplier": "farmaland"
     }
   ],
   "pharmacies": [
@@ -105,6 +117,20 @@
           "medicineId": "m2",
           "quantity": 200,
           "unitPrice": 10800,
+          "discount": 0
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "2kfgtbm3mhu5pye1",
+      "pharmacyId": "zgv4ors3mhatyux3",
+      "date": "2025-11-11T00:00:00.000Z",
+      "items": [
+        {
+          "medicineId": "1ybpso75mhhvtt3g",
+          "quantity": 1,
+          "unitPrice": 25000,
           "discount": 0
         }
       ],

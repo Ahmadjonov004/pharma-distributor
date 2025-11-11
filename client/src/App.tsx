@@ -5,7 +5,8 @@ import Distribute from './pages/Distribute'
 import Pharmacies from './pages/Pharmacies'
 import Reports from './pages/Reports'
 import Settings from './pages/Settings'
-import { Home, Package, Truck, Building2, BarChart3, Settings as Cog } from 'lucide-react'
+import SupplierAnalytics from './pages/SupplierAnalytics'
+import { Home, Package, Truck, Building2, BarChart3, Settings as Cog, Factory } from 'lucide-react'
 
 function Frame(){
   const nav=[
@@ -13,6 +14,7 @@ function Frame(){
     {to:'/inventory',label:'Ombor',icon:Package},
     {to:'/distribute',label:'Tarqatish',icon:Truck},
     {to:'/pharmacies',label:'Dorixonalar',icon:Building2},
+    {to:'/suppliers',label:'Firmalar',icon:Factory},
     {to:'/reports',label:'Hisobotlar',icon:BarChart3},
     {to:'/settings',label:'Sozlamalar',icon:Cog}
   ]
@@ -37,6 +39,7 @@ function Frame(){
           <Route path='/inventory' element={<Inventory/>}/>
           <Route path='/distribute' element={<Distribute/>}/>
           <Route path='/pharmacies' element={<Pharmacies/>}/>
+          <Route path='/suppliers' element={<SupplierAnalytics/>}/>
           <Route path='/reports' element={<Reports/>}/>
           <Route path='/settings' element={<Settings/>}/>
         </Routes>
