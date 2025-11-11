@@ -83,7 +83,7 @@ export default function Reports() {
           <input type="date" className="w-full border border-gray-300 rounded-lg p-2" value={to} onChange={(e) => setTo(e.target.value)} />
         </div>
         <button onClick={() => { setFrom(""); setTo(""); }} className="bg-gray-200 rounded-lg py-2">Filtrni tozalash</button>
-        <button onClick={() => api.exportCSV(fro || undefined, to || undefined)} className="bg-blue-600 text-white rounded-lg py-2">CSV eksport</button>
+        <button onClick={() => api.exportCSV()} className="bg-blue-600 text-white rounded-lg py-2">CSV eksport</button>
       </div>
 
       {/* Table */}

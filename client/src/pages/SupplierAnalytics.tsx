@@ -1,20 +1,21 @@
 import { useEffect, useState } from "react";
 import type { Medicine } from "../types";
-import { api } from "../api";
+import { useUserData } from "../hooks/useUserData";
 
 export default function SupplierAnalytics() {
+  const { listMedicines } = useUserData()
   const [items, setItems] = useState<Medicine[]>([]);
   const [supplierStats, setSupplierStats] = useState<
     { name: string; count: number }[]
   >([]);
 
-  async function refresh() {
-    const meds = await api.listMedicines();
+  function refresh() {
+    const meds = listMedicines();
     setItems(meds);
     
     // Group by supplier and count
     const stats: Record<string, number> = {};
-    meds.forEach((m) => {
+    meds.forEach((m: Medicine) => {
       const supplier = m.supplier || "Belgilanmagan";
       stats[supplier] = (stats[supplier] || 0) + 1;
     });
@@ -28,7 +29,7 @@ export default function SupplierAnalytics() {
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [listMedicines]);
 
   return (
     <div className="space-y-6 p-4 md:p-8">

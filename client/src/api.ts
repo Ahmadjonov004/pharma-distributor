@@ -1,199 +1,101 @@
-import type { Medicine, Pharmacy, Distribution } from './types';import type { Medicine, Pharmacy, Distribution } from './types';
-
-const API = '/api';
+import type { Medicine, Pharmacy, Distribution } from './types';
 
 // Hozirgi foydalanuvchini olish
-
-const getCurrentUser = () => {export const api = {
-
-  const user = localStorage.getItem('pharma_currentUser')  listMedicines: async (): Promise<Medicine[]> =>
-
-  return user ? JSON.parse(user) : null    (await fetch(`${API}/medicines`)).json(),
-
+const getCurrentUser = () => {
+  const user = localStorage.getItem('pharma_currentUser')
+  return user ? JSON.parse(user) : null
 }
 
-  createMedicine: async (
-
-// Foydalanuvchi ma'lumotlar bazasini olish    m: Omit<Medicine, 'id' | 'createdAt'>
-
-const getUserData = () => {  ): Promise<Medicine> =>
-
-  const user = getCurrentUser()    (
-
-  if (!user) return null      await fetch(`${API}/medicines`, {
-
-  const data = localStorage.getItem(`pharma_data_${user.id}`)        method: 'POST',
-
-  return data ? JSON.parse(data) : {        headers: { 'Content-Type': 'application/json' },
-
-    medicines: [],        body: JSON.stringify(m),
-
-    pharmacies: [],      })
-
-    distributions: [],    ).json(),
-
+// Foydalanuvchi ma'lumotlar bazasini olish
+const getUserData = () => {
+  const user = getCurrentUser()
+  if (!user) return null
+  const data = localStorage.getItem(`pharma_data_${user.id}`)
+  return data ? JSON.parse(data) : {
+    medicines: [],
+    pharmacies: [],
+    distributions: [],
     settings: { currency: 'UZS', distributorName: 'Pharma Distributor' }
+  }
+}
 
-  }  updateMedicine: async (
+// Foydalanuvchi ma'lumotlar bazasini saqlash
+const saveUserData = (data: any) => {
+  const user = getCurrentUser()
+  if (!user) return
+  localStorage.setItem(`pharma_data_${user.id}`, JSON.stringify(data))
+}
 
-}    id: string,
-
-    patch: Partial<Medicine>
-
-// Foydalanuvchi ma'lumotlar bazasini saqlash  ): Promise<Medicine> =>
-
-const saveUserData = (data: any) => {    (
-
-  const user = getCurrentUser()      await fetch(`${API}/medicines/${id}`, {
-
-  if (!user) return        method: 'PUT',
-
-  localStorage.setItem(`pharma_data_${user.id}`, JSON.stringify(data))        headers: { 'Content-Type': 'application/json' },
-
-}        body: JSON.stringify(patch),
-
-      })
-
-export const api = {    ).json(),
-
+export const api = {
   listMedicines: async (): Promise<Medicine[]> => {
-
-    const userDB = getUserData()  // 🛠 To‘g‘rilangan updatePharmacy
-
-    return userDB?.medicines || []  updatePharmacy: async (id: string, patch: Partial<Pharmacy>): Promise<Pharmacy> =>
-
-  },  (await fetch(`${API}/pharmacies/${id}`, {
-
-    method: 'PUT',
-
-  createMedicine: async (    headers: { 'Content-Type': 'application/json' },
-
-    m: Omit<Medicine, 'id' | 'createdAt'>    body: JSON.stringify(patch), // ✅ Faqat tahrirlangan maydonlarni yuboramiz
-
-  ): Promise<Medicine> => {  })).json(),
-
-    const newMedicine: Medicine = {
-
-      ...m,
-
-      id: Date.now().toString(),  deleteMedicine: async (id: string): Promise<void> => {
-
-      createdAt: new Date().toISOString()    await fetch(`${API}/medicines/${id}`, { method: 'DELETE' });
-
-    }  },
-
     const userDB = getUserData()
-
-    if (!userDB) throw new Error('Not authenticated')  listPharmacies: async (): Promise<Pharmacy[]> =>
-
-    const updated = {    (await fetch(`${API}/pharmacies`)).json(),
-
-      ...userDB,
-
-      medicines: [...(userDB?.medicines || []), newMedicine]  createPharmacy: async (
-
-    }    p: Omit<Pharmacy, 'id' | 'createdAt'>
-
-    saveUserData(updated)  ): Promise<Pharmacy> =>
-
-    return newMedicine    (
-
-  },      await fetch(`${API}/pharmacies`, {
-
-        method: 'POST',
-
-  updateMedicine: async (        headers: { 'Content-Type': 'application/json' },
-
-    id: string,        body: JSON.stringify(p),
-
-    patch: Partial<Medicine>      })
-
-  ): Promise<Medicine> => {    ).json(),
-
-    const userDB = getUserData()
-
-    if (!userDB) throw new Error('Not authenticated')  deletePharmacy: async (id: string): Promise<void> => {
-
-    const medicines = userDB?.medicines || []    await fetch(`${API}/pharmacies/${id}`, { method: 'DELETE' });
-
-    const index = medicines.findIndex((m: Medicine) => m.id === id)  },
-
-    if (index === -1) throw new Error('Medicine not found')
-
-    medicines[index] = { ...medicines[index], ...patch }  listDistributions: async (): Promise<Distribution[]> =>
-
-    saveUserData({ ...userDB, medicines })    (await fetch(`${API}/distributions`)).json(),
-
-    return medicines[index]
-
-  },  createDistribution: async (
-
-    d: Omit<Distribution, 'id'>
-
-  deleteMedicine: async (id: string): Promise<void> => {  ): Promise<Distribution> =>
-
-    const userDB = getUserData()    (
-
-    if (!userDB) throw new Error('Not authenticated')      await fetch(`${API}/distributions`, {
-
-    const medicines = userDB?.medicines || []        method: 'POST',
-
-    const filtered = medicines.filter((m: Medicine) => m.id !== id)        headers: { 'Content-Type': 'application/json' },
-
-    saveUserData({ ...userDB, medicines: filtered })        body: JSON.stringify(d),
-
-  },      })
-
-    ).json(),
-
-  listPharmacies: async (): Promise<Pharmacy[]> => {
-
-    const userDB = getUserData()  deleteDistribution: async (id: string): Promise<void> => {
-
-    return userDB?.pharmacies || []    await fetch(`${API}/distributions/${id}`, { method: 'DELETE' });
-
-  },  },
-
-
-
-  createPharmacy: async (  getKPI: async (
-
-    p: Omit<Pharmacy, 'id' | 'createdAt'>    month?: string
-
-  ): Promise<Pharmacy> => {  ): Promise<{
-
-    const newPharmacy: Pharmacy = {    monthTurnover: number;
-
-      ...p,    monthProfit: number;
-
-      id: Date.now().toString(),    totalPharmacies: number;
-
-      createdAt: new Date().toISOString()    totalSKUs: number;
-
-    }    currency: 'UZS' | 'USD';
-
-    const userDB = getUserData()  }> => (await fetch(`${API}/kpi${month ? `?month=${month}` : ''}`)).json(),
-
-    if (!userDB) throw new Error('Not authenticated')
-
-    const updated = {  exportCSV: (fro?: string, to?: string) => {
-
-      ...userDB,    const url = `${API}/export${
-
-      pharmacies: [...(userDB?.pharmacies || []), newPharmacy]      fro || to
-
-    }        ? `?${new URLSearchParams({ fro: fro || '', to: to || '' }).toString()}`
-
-    saveUserData(updated)        : ''
-
-    return newPharmacy    }`;
-
-  },    window.location.href = url;
-
+    return userDB?.medicines || []
   },
 
-  updatePharmacy: async (id: string, patch: Partial<Pharmacy>): Promise<Pharmacy> => {};
+  createMedicine: async (
+    m: Omit<Medicine, 'id' | 'createdAt'>
+  ): Promise<Medicine> => {
+    const newMedicine: Medicine = {
+      ...m,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString()
+    }
+    const userDB = getUserData()
+    if (!userDB) throw new Error('Not authenticated')
+    const updated = {
+      ...userDB,
+      medicines: [...(userDB?.medicines || []), newMedicine]
+    }
+    saveUserData(updated)
+    return newMedicine
+  },
 
+  updateMedicine: async (
+    id: string,
+    patch: Partial<Medicine>
+  ): Promise<Medicine> => {
+    const userDB = getUserData()
+    if (!userDB) throw new Error('Not authenticated')
+    const medicines = userDB?.medicines || []
+    const index = medicines.findIndex((m: Medicine) => m.id === id)
+    if (index === -1) throw new Error('Medicine not found')
+    medicines[index] = { ...medicines[index], ...patch }
+    saveUserData({ ...userDB, medicines })
+    return medicines[index]
+  },
+
+  deleteMedicine: async (id: string): Promise<void> => {
+    const userDB = getUserData()
+    if (!userDB) throw new Error('Not authenticated')
+    const medicines = userDB?.medicines || []
+    const filtered = medicines.filter((m: Medicine) => m.id !== id)
+    saveUserData({ ...userDB, medicines: filtered })
+  },
+
+  listPharmacies: async (): Promise<Pharmacy[]> => {
+    const userDB = getUserData()
+    return userDB?.pharmacies || []
+  },
+
+  createPharmacy: async (
+    p: Omit<Pharmacy, 'id' | 'createdAt'>
+  ): Promise<Pharmacy> => {
+    const newPharmacy: Pharmacy = {
+      ...p,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString()
+    }
+    const userDB = getUserData()
+    if (!userDB) throw new Error('Not authenticated')
+    const updated = {
+      ...userDB,
+      pharmacies: [...(userDB?.pharmacies || []), newPharmacy]
+    }
+    saveUserData(updated)
+    return newPharmacy
+  },
+
+  updatePharmacy: async (id: string, patch: Partial<Pharmacy>): Promise<Pharmacy> => {
     const userDB = getUserData()
     if (!userDB) throw new Error('Not authenticated')
     const pharmacies = userDB?.pharmacies || []
@@ -242,9 +144,7 @@ export const api = {    ).json(),
     saveUserData({ ...userDB, distributions: filtered })
   },
 
-  getKPI: async (
-    month?: string
-  ): Promise<{
+  getKPI: async (): Promise<{
     monthTurnover: number;
     monthProfit: number;
     totalPharmacies: number;
@@ -252,7 +152,8 @@ export const api = {    ).json(),
     currency: 'UZS' | 'USD';
   }> => {
     const userDB = getUserData()
-    if (!userDB) throw new Error('Not authenticated')
+    if (!userDB) return { monthTurnover: 0, monthProfit: 0, totalPharmacies: 0, totalSKUs: 0, currency: 'UZS' }
+    
     const medicines = userDB?.medicines || []
     const pharmacies = userDB?.pharmacies || []
     const distributions = userDB?.distributions || []
@@ -287,7 +188,7 @@ export const api = {    ).json(),
     }
   },
 
-  exportCSV: (fro?: string, to?: string) => {
+  exportCSV: () => {
     // CSV export logic
   },
 };
