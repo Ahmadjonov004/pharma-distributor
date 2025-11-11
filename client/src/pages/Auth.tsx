@@ -26,33 +26,47 @@ export default function Auth() {
 
   // Initialization - test users qo'shish
   useEffect(() => {
-    const users = localStorage.getItem('pharma_users')
-    if (!users) {
-      // Birinchi marta test data qo'shish
-      const testUsers: User[] = [
-        {
-          id: '1',
-          name: 'Test Foydalanuvchi',
-          email: 'test@mail.com',
-          password: '123456',
-          createdAt: new Date().toISOString()
-        }
-      ]
-      localStorage.setItem('pharma_users', JSON.stringify(testUsers))
+    try {
+      const users = localStorage.getItem('pharma_users')
+      if (!users) {
+        // Birinchi marta test data qo'shish
+        const testUsers: User[] = [
+          {
+            id: '1',
+            name: 'Test Foydalanuvchi',
+            email: 'test@mail.com',
+            password: '123456',
+            createdAt: new Date().toISOString()
+          }
+        ]
+        localStorage.setItem('pharma_users', JSON.stringify(testUsers))
+      }
+    } catch (err) {
+      console.error('Error initializing test users:', err)
     }
   }, [])
 
-  // Ma'lumotlar bazasini olish
+  // Ma'lumotlar bazasini olish (xato handling bilan)
   const getUsers = (): User[] => {
-    const users = localStorage.getItem('pharma_users')
-    return users ? JSON.parse(users) : []
+    try {
+      const users = localStorage.getItem('pharma_users')
+      return users ? JSON.parse(users) : []
+    } catch (err) {
+      console.error('Error reading users:', err)
+      return []
+    }
   }
 
-  // Foydalanuvchini saqlash
+  // Foydalanuvchini saqlash (xato handling bilan)
   const saveUser = (user: User) => {
-    const users = getUsers()
-    users.push(user)
-    localStorage.setItem('pharma_users', JSON.stringify(users))
+    try {
+      const users = getUsers()
+      users.push(user)
+      localStorage.setItem('pharma_users', JSON.stringify(users))
+    } catch (err) {
+      console.error('Error saving user:', err)
+      throw new Error('Foydalanuvchini saqlashda xato')
+    }
   }
 
   // Foydalanuvchining alohida ma'lumotlar bazasini yaratish

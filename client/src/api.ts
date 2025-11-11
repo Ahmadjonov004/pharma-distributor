@@ -1,29 +1,48 @@
 import type { Medicine, Pharmacy, Distribution } from './types';
 
-// Hozirgi foydalanuvchini olish
+// Hozirgi foydalanuvchini olish (xato handling bilan)
 const getCurrentUser = () => {
-  const user = localStorage.getItem('pharma_currentUser')
-  return user ? JSON.parse(user) : null
-}
-
-// Foydalanuvchi ma'lumotlar bazasini olish
-const getUserData = () => {
-  const user = getCurrentUser()
-  if (!user) return null
-  const data = localStorage.getItem(`pharma_data_${user.id}`)
-  return data ? JSON.parse(data) : {
-    medicines: [],
-    pharmacies: [],
-    distributions: [],
-    settings: { currency: 'UZS', distributorName: 'Pharma Distributor' }
+  try {
+    const user = localStorage.getItem('pharma_currentUser')
+    return user ? JSON.parse(user) : null
+  } catch (err) {
+    console.error('Error reading current user:', err)
+    return null
   }
 }
 
-// Foydalanuvchi ma'lumotlar bazasini saqlash
+// Foydalanuvchi ma'lumotlar bazasini olish (xato handling bilan)
+const getUserData = () => {
+  try {
+    const user = getCurrentUser()
+    if (!user) return null
+    const data = localStorage.getItem(`pharma_data_${user.id}`)
+    return data ? JSON.parse(data) : {
+      medicines: [],
+      pharmacies: [],
+      distributions: [],
+      settings: { currency: 'UZS', distributorName: 'Pharma Distributor' }
+    }
+  } catch (err) {
+    console.error('Error reading user data:', err)
+    return {
+      medicines: [],
+      pharmacies: [],
+      distributions: [],
+      settings: { currency: 'UZS', distributorName: 'Pharma Distributor' }
+    }
+  }
+}
+
+// Foydalanuvchi ma'lumotlar bazasini saqlash (xato handling bilan)
 const saveUserData = (data: any) => {
-  const user = getCurrentUser()
-  if (!user) return
-  localStorage.setItem(`pharma_data_${user.id}`, JSON.stringify(data))
+  try {
+    const user = getCurrentUser()
+    if (!user) return
+    localStorage.setItem(`pharma_data_${user.id}`, JSON.stringify(data))
+  } catch (err) {
+    console.error('Error saving user data:', err)
+  }
 }
 
 export const api = {
