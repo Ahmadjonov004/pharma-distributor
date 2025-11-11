@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import type { Medicine } from "../types";
-import { api } from "../api";
+import { useUserData } from "../hooks/useUserData";
 import { money, shortDate } from "../utils/format";
 
 export default function Inventory() {
+  const { listMedicines, createMedicine, updateMedicine, deleteMedicine } = useUserData();
   const [items, setItems] = useState<Medicine[]>([]);
   const [form, setForm] = useState({
     name: "",
@@ -23,14 +24,14 @@ export default function Inventory() {
   const [sortField, setSortField] = useState<string>("name");
   const [sortAsc, setSortAsc] = useState<boolean>(true);
 
-  async function refresh() {
-    const meds = await api.listMedicines();
+  function refresh() {
+    const meds = listMedicines();
     setItems(meds);
   }
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [listMedicines]);
 
   const handleSort = (field: keyof Medicine) => {
     if (sortField === field) setSortAsc(!sortAsc);
@@ -53,7 +54,7 @@ export default function Inventory() {
 
   const submit = async () => {
     if (!form.name) return;
-    await api.createMedicine(form as any);
+    createMedicine(form as any);
     setForm({
       name: "",
       sku: "",
@@ -69,14 +70,14 @@ export default function Inventory() {
 
   const saveEdit = async () => {
     if (!editItem) return;
-    await api.updateMedicine(editItem.id, editItem);
+    updateMedicine(editItem.id, editItem);
     setEditItem(null);
     refresh();
   };
 
   const confirmDelete = async () => {
     if (!deleteItem) return;
-    await api.deleteMedicine(deleteItem.id);
+    deleteMedicine(deleteItem.id);
     setDeleteItem(null);
     refresh();
   };
@@ -86,7 +87,7 @@ export default function Inventory() {
     setLoading(true);
     const med = items.find((m) => m.id === id);
     if (!med) return;
-    await api.updateMedicine(id, { stock: med.stock + addStockValue });
+    updateMedicine(id, { stock: med.stock + addStockValue });
     setAddStockValue(0);
     setLoading(false);
     refresh();

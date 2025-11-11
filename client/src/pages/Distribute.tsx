@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Pharmacy, Medicine } from '../types'
-import { api } from '../api'
+import { useUserData } from '../hooks/useUserData'
 import { money } from '../utils/format'
 
 export default function Tarqatish(){
+  const { listPharmacies, listMedicines, createDistribution } = useUserData()
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([])
   const [medicines, setMedicines] = useState<Medicine[]>([])
   const [pharmacyId, setPharmacyId] = useState('')
@@ -12,9 +13,12 @@ export default function Tarqatish(){
   const [notes, setNotes] = useState('')
 
   useEffect(()=>{
-    api.listPharmacies().then(list=>{ setPharmacies(list); setPharmacyId(list[0]?.id||'') })
-    api.listMedicines().then(setMedicines)
-  },[])
+    const pharms = listPharmacies()
+    const meds = listMedicines()
+    setPharmacies(pharms)
+    setMedicines(meds)
+    setPharmacyId(pharms[0]?.id||'')
+  }, [listPharmacies, listMedicines])
 
   const addLine = () => {
     if(!medicines[0]) return
@@ -25,7 +29,7 @@ export default function Tarqatish(){
 
   const submit = async () => {
     if(!pharmacyId || lines.length===0) return
-    await api.createDistribution({ pharmacyId, date: new Date(date).toISOString(), items: lines.map(l=>({ medicineId: l.medicineId, quantity: l.quantity, unitPrice: l.unitPrice, discount: l.discount||0 })), notes })
+    createDistribution({ pharmacyId, date: new Date(date).toISOString(), items: lines.map(l=>({ medicineId: l.medicineId, quantity: l.quantity, unitPrice: l.unitPrice, discount: l.discount||0 })), notes })
     setLines([]); setNotes(''); alert('Tarqatish saqlandi!')
   }
 

@@ -5,28 +5,6 @@
   },
   "medicines": [
     {
-      "id": "m2",
-      "name": "Amoxicillin 250mg",
-      "sku": "AMOX-250",
-      "unit": "capsule",
-      "purchasePrice": 900,
-      "salePrice": 1200,
-      "expiry": "2026-07-01",
-      "stock": 0,
-      "createdAt": "2025-01-01T00:00:00.000Z"
-    },
-    {
-      "id": "1ybpso75mhhvtt3g",
-      "createdAt": "2025-11-02T15:44:53.643Z",
-      "name": "midnight",
-      "sku": "MND",
-      "unit": "tablet",
-      "purchasePrice": 20000,
-      "salePrice": 25000,
-      "expiry": "2025-11-30",
-      "stock": 99
-    },
-    {
       "id": "d6axhhavmhu5ou7f",
       "createdAt": "2025-11-11T05:54:12.075Z",
       "name": "asas",
@@ -55,14 +33,6 @@
       "phone": "+9979855855",
       "address": "fargona",
       "contact": "sardor"
-    },
-    {
-      "id": "nfexl6h3mhaut5z3",
-      "createdAt": "2025-10-28T17:42:00.830Z",
-      "name": "xc ",
-      "phone": "xc ",
-      "address": "xc ",
-      "contact": "xc "
     }
   ],
   "distributions": [

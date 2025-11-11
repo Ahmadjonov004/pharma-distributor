@@ -1,37 +1,38 @@
 import { useEffect, useState } from "react";
 import type { Pharmacy } from "../types";
-import { api } from "../api";
+import { useUserData } from "../hooks/useUserData";
 
 export default function Pharmacies() {
+  const { listPharmacies, createPharmacy, updatePharmacy, deletePharmacy } = useUserData()
   const [list, setList] = useState<Pharmacy[]>([]);
   const [form, setForm] = useState({ name: "", phone: "", address: "", contact: "" });
   const [editModal, setEditModal] = useState<Pharmacy | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // 🔄 Ma’lumotlarni olish
-  async function refresh() {
+  // 🔄 Ma'lumotlarni olish
+  function refresh() {
     setLoading(true);
-    const data = await api.listPharmacies();
+    const data = listPharmacies();
     setList(data);
     setLoading(false);
   }
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [listPharmacies]);
 
-  // ➕ Yangi dorixona qo‘shish
+  // ➕ Yangi dorixona qo'shish
   const submit = async () => {
     if (!form.name.trim()) return alert("Dorixona nomini kiriting!");
-    await api.createPharmacy(form as any);
+    createPharmacy(form as any);
     setForm({ name: "", phone: "", address: "", contact: "" });
     refresh();
   };
 
-  // 🗑 O‘chirish
+  // 🗑 O'chirish
   const remove = async (id: string) => {
-    if (!confirm("Bu dorixonani o‘chirishni xohlaysizmi?")) return;
-    await api.deletePharmacy(id);
+    if (!confirm("Bu dorixonani o'chirishni xohlaysizmi?")) return;
+    deletePharmacy(id);
     refresh();
   };
 
@@ -39,7 +40,7 @@ export default function Pharmacies() {
 const saveEdit = async () => {
   if (!editModal) return;
   const { id, ...updatedFields } = editModal; // ✅ id ni ajratib oldik
-  await api.updatePharmacy(id, updatedFields); // ✅ idsiz yuboramiz
+  updatePharmacy(id, updatedFields); // ✅ idsiz yuboramiz
   setEditModal(null);
   refresh();
 };
