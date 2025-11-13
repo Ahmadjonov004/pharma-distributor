@@ -22,81 +22,104 @@ export default function Dashboard() {
   const [pharmacyStats, setPharmacyStats] = useState<{ name: string; quantity: number; total: number }[]>([])
 
   useEffect(() => {
-    // Barcha ma'lumotlarni yuklash
-    const dists = listDistributions()
-    const pharms = listPharmacies()
-    const meds = listMedicines()
-    
-    setDistributions(dists)
-    setPharmacies(pharms)
-    setMedicines(meds)
-    
-    // KPI hisoblash
-    let monthTurnover = 0
-    let monthProfit = 0
-    const now = new Date()
-    const currentMonth = now.getMonth()
-    const currentYear = now.getFullYear()
+    // Calculate statistics from current data
+    const calculateStats = () => {
+      const dists = listDistributions()
+      const pharms = listPharmacies()
+      const meds = listMedicines()
+      
+      setDistributions(dists)
+      setPharmacies(pharms)
+      setMedicines(meds)
+      
+      // KPI calculation
+      let monthTurnover = 0
+      let monthProfit = 0
+      const now = new Date()
+      const currentMonth = now.getMonth()
+      const currentYear = now.getFullYear()
 
-    dists.forEach(d => {
-      const distDate = new Date(d.date)
-      if (distDate.getMonth() === currentMonth && distDate.getFullYear() === currentYear) {
-        d.items.forEach(item => {
-          const med = meds.find(m => m.id === item.medicineId)
-          if (med) {
-            monthTurnover += item.quantity * item.unitPrice
-            const profit = item.quantity * (item.unitPrice - med.purchasePrice)
-            monthProfit += profit
-          }
-        })
-      }
-    })
+      dists.forEach((d: Distribution) => {
+        const distDate = new Date(d.date)
+        if (distDate.getMonth() === currentMonth && distDate.getFullYear() === currentYear) {
+          d.items.forEach((item) => {
+            const med = meds.find(m => m.id === item.medicineId)
+            if (med) {
+              monthTurnover += item.quantity * item.unitPrice
+              const profit = item.quantity * (item.unitPrice - med.purchasePrice)
+              monthProfit += profit
+            }
+          })
+        }
+      })
 
-    setKpi({
-      monthTurnover,
-      monthProfit,
-      totalPharmacies: pharms.length,
-      totalSKUs: meds.length,
-      currency: 'UZS'
-    })
-    
-    // Firmalar bo'yicha statistika
-    const supplierMap: Record<string, { quantity: number; total: number }> = {}
-    dists.forEach(d => {
-      d.items.forEach(item => {
-        const med = meds.find(m => m.id === item.medicineId)
-        const supplier = med?.supplier || 'Belgilanmagan'
+      setKpi({
+        monthTurnover,
+        monthProfit,
+        totalPharmacies: pharms.length,
+        totalSKUs: meds.length,
+        currency: 'UZS'
+      })
+      
+      // Supplier statistics - BARCHASI: medicines + distributions
+      const supplierMap: Record<string, { quantity: number; total: number }> = {}
+      
+      // Ombordagi medicines-dan supplier statistika
+      meds.forEach((med: Medicine) => {
+        const supplier = med.supplier || 'Belgilanmagan'
         if (!supplierMap[supplier]) {
           supplierMap[supplier] = { quantity: 0, total: 0 }
         }
-        supplierMap[supplier].quantity += item.quantity
-        supplierMap[supplier].total += item.quantity * item.unitPrice
+        supplierMap[supplier].quantity += med.stock
+        supplierMap[supplier].total += med.stock * med.salePrice
       })
-    })
-    setSupplierStats(
-      Object.entries(supplierMap)
-        .map(([name, stats]) => ({ name, ...stats }))
-        .sort((a, b) => b.total - a.total)
-    )
-    
-    // Dorixonalar bo'yicha statistika
-    const pharmacyMap: Record<string, { quantity: number; total: number }> = {}
-    dists.forEach(d => {
-      const pharm = pharms.find(p => p.id === d.pharmacyId)
-      const pharmName = pharm?.name || 'Noma\'lum'
-      if (!pharmacyMap[pharmName]) {
-        pharmacyMap[pharmName] = { quantity: 0, total: 0 }
-      }
-      d.items.forEach(item => {
-        pharmacyMap[pharmName].quantity += item.quantity
-        pharmacyMap[pharmName].total += item.quantity * item.unitPrice
+      
+      // Distributions-dan supplier statistika (sotuv)
+      dists.forEach((d: Distribution) => {
+        d.items.forEach((item) => {
+          const med = meds.find(m => m.id === item.medicineId)
+          const supplier = med?.supplier || 'Belgilanmagan'
+          if (!supplierMap[supplier]) {
+            supplierMap[supplier] = { quantity: 0, total: 0 }
+          }
+          supplierMap[supplier].quantity += item.quantity
+          supplierMap[supplier].total += item.quantity * item.unitPrice
+        })
       })
-    })
-    setPharmacyStats(
-      Object.entries(pharmacyMap)
-        .map(([name, stats]) => ({ name, ...stats }))
-        .sort((a, b) => b.total - a.total)
-    )
+      
+      setSupplierStats(
+        Object.entries(supplierMap)
+          .map(([name, stats]) => ({ name, ...stats }))
+          .sort((a, b) => b.total - a.total)
+      )
+      
+      // Pharmacy statistics
+      const pharmacyMap: Record<string, { quantity: number; total: number }> = {}
+      dists.forEach((d: Distribution) => {
+        const pharm = pharms.find(p => p.id === d.pharmacyId)
+        const pharmName = pharm?.name || 'Noma\'lum'
+        if (!pharmacyMap[pharmName]) {
+          pharmacyMap[pharmName] = { quantity: 0, total: 0 }
+        }
+        d.items.forEach((item) => {
+          pharmacyMap[pharmName].quantity += item.quantity
+          pharmacyMap[pharmName].total += item.quantity * item.unitPrice
+        })
+      })
+      setPharmacyStats(
+        Object.entries(pharmacyMap)
+          .map(([name, stats]) => ({ name, ...stats }))
+          .sort((a, b) => b.total - a.total)
+      )
+    }
+
+    // Initial calculation
+    calculateStats()
+
+    // Refresh every 2 seconds for real-time updates
+    const interval = setInterval(calculateStats, 2000)
+
+    return () => clearInterval(interval)
   }, [listDistributions, listPharmacies, listMedicines])
 
   const Card = ({ title, value, id }: { title: string; value: string; id: string }) => (
