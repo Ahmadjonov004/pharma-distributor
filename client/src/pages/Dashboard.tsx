@@ -21,6 +21,23 @@ export default function Dashboard() {
   const [supplierStats, setSupplierStats] = useState<{ name: string; quantity: number; total: number }[]>([])
   const [pharmacyStats, setPharmacyStats] = useState<{ name: string; quantity: number; total: number }[]>([])
 
+  const [supplierPayments, setSupplierPayments] = useState<Record<string, number>>({})
+  const [pharmacyPayments, setPharmacyPayments] = useState<Record<string, number>>({})
+
+  const updateSupplierPayment = (supplierName: string, amount: number) => {
+    setSupplierPayments((prev) => ({
+      ...prev,
+      [supplierName]: (prev[supplierName] || 0) + amount,
+    }))
+  }
+
+  const updatePharmacyPayment = (pharmacyName: string, amount: number) => {
+    setPharmacyPayments((prev) => ({
+      ...prev,
+      [pharmacyName]: (prev[pharmacyName] || 0) + amount,
+    }))
+  }
+
   useEffect(() => {
     // Calculate statistics from current data
     const calculateStats = () => {
@@ -414,23 +431,45 @@ export default function Dashboard() {
                   <th className="text-left py-3 px-4 font-semibold text-slate-700">Firma nomi</th>
                   <th className="text-right py-3 px-4 font-semibold text-slate-700">Miqdori (ta)</th>
                   <th className="text-right py-3 px-4 font-semibold text-slate-700">Jami xarid (so'm)</th>
+                  <th className="text-right py-3 px-4 font-semibold text-slate-700">To'langan (so'm)</th>
+                  <th className="text-right py-3 px-4 font-semibold text-slate-700">Qarz (so'm)</th>
+                  <th className="text-right py-3 px-4 font-semibold text-slate-700">Tahrirlash</th>
                 </tr>
               </thead>
               <tbody>
-                {supplierStats.map((supplier, idx) => (
-                  <tr 
-                    key={idx} 
-                    onClick={() => {
-                      setSelected(supplier.name)
-                      setSelectedType('supplier')
-                    }}
-                    className="border-b hover:bg-slate-50 transition cursor-pointer"
-                  >
-                    <td className="py-3 px-4">{supplier.name}</td>
-                    <td className="text-right py-3 px-4 font-medium">{supplier.quantity}</td>
-                    <td className="text-right py-3 px-4 text-green-600 font-semibold">{money(supplier.total, kpi.currency)}</td>
-                  </tr>
-                ))}
+                {supplierStats.map((supplier, idx) => {
+                  const paid = supplierPayments[supplier.name] || 0
+                  const debt = supplier.total - paid
+                  return (
+                    <tr 
+                      key={idx} 
+                      onClick={() => {
+                        setSelected(supplier.name)
+                        setSelectedType('supplier')
+                      }}
+                      className="border-b hover:bg-slate-50 transition cursor-pointer"
+                    >
+                      <td className="py-3 px-4">{supplier.name}</td>
+                      <td className="text-right py-3 px-4 font-medium">{supplier.quantity}</td>
+                      <td className="text-right py-3 px-4 text-green-600 font-semibold">{money(supplier.total, kpi.currency)}</td>
+                      <td className="text-right py-3 px-4 text-blue-600 font-semibold">{money(paid, kpi.currency)}</td>
+                      <td className="text-right py-3 px-4 text-red-600 font-semibold">{money(debt, kpi.currency)}</td>
+                      <td className="text-right py-3 px-4">
+                        <button
+                          onClick={() => {
+                            const amount = parseFloat(prompt(`Qancha to'lashni xohlaysiz?`, '0') || '0')
+                            if (!isNaN(amount) && amount > 0) {
+                              updateSupplierPayment(supplier.name, amount)
+                            }
+                          }}
+                          className="text-blue-600 hover:underline"
+                        >
+                          Tahrirlash
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -450,23 +489,45 @@ export default function Dashboard() {
                   <th className="text-left py-3 px-4 font-semibold text-slate-700">Dorixona nomi</th>
                   <th className="text-right py-3 px-4 font-semibold text-slate-700">Miqdori (ta)</th>
                   <th className="text-right py-3 px-4 font-semibold text-slate-700">Jami xarid (so'm)</th>
+                  <th className="text-right py-3 px-4 font-semibold text-slate-700">To'langan (so'm)</th>
+                  <th className="text-right py-3 px-4 font-semibold text-slate-700">Qarz (so'm)</th>
+                  <th className="text-right py-3 px-4 font-semibold text-slate-700">Tahrirlash</th>
                 </tr>
               </thead>
               <tbody>
-                {pharmacyStats.map((pharmacy, idx) => (
-                  <tr 
-                    key={idx} 
-                    onClick={() => {
-                      setSelected(pharmacy.name)
-                      setSelectedType('pharmacy')
-                    }}
-                    className="border-b hover:bg-slate-50 transition cursor-pointer"
-                  >
-                    <td className="py-3 px-4">{pharmacy.name}</td>
-                    <td className="text-right py-3 px-4 font-medium">{pharmacy.quantity}</td>
-                    <td className="text-right py-3 px-4 text-blue-600 font-semibold">{money(pharmacy.total, kpi.currency)}</td>
-                  </tr>
-                ))}
+                {pharmacyStats.map((pharmacy, idx) => {
+                  const paid = pharmacyPayments[pharmacy.name] || 0
+                  const debt = pharmacy.total - paid
+                  return (
+                    <tr 
+                      key={idx} 
+                      onClick={() => {
+                        setSelected(pharmacy.name)
+                        setSelectedType('pharmacy')
+                      }}
+                      className="border-b hover:bg-slate-50 transition cursor-pointer"
+                    >
+                      <td className="py-3 px-4">{pharmacy.name}</td>
+                      <td className="text-right py-3 px-4 font-medium">{pharmacy.quantity}</td>
+                      <td className="text-right py-3 px-4 text-blue-600 font-semibold">{money(pharmacy.total, kpi.currency)}</td>
+                      <td className="text-right py-3 px-4 text-green-600 font-semibold">{money(paid, kpi.currency)}</td>
+                      <td className="text-right py-3 px-4 text-red-600 font-semibold">{money(debt, kpi.currency)}</td>
+                      <td className="text-right py-3 px-4">
+                        <button
+                          onClick={() => {
+                            const amount = parseFloat(prompt(`Qancha to'lashni qabul qilasiz?`, '0') || '0')
+                            if (!isNaN(amount) && amount > 0) {
+                              updatePharmacyPayment(pharmacy.name, amount)
+                            }
+                          }}
+                          className="text-blue-600 hover:underline"
+                        >
+                          Tahrirlash
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
