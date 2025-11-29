@@ -23,6 +23,8 @@ export default function Dashboard() {
 
   const [supplierPayments, setSupplierPayments] = useState<Record<string, number>>({})
   const [pharmacyPayments, setPharmacyPayments] = useState<Record<string, number>>({})
+  const [paymentModal, setPaymentModal] = useState<{ type: 'supplier' | 'pharmacy'; name: string; total: number } | null>(null)
+  const [paymentAmount, setPaymentAmount] = useState('')
 
   const updateSupplierPayment = (supplierName: string, amount: number) => {
     setSupplierPayments((prev) => ({
@@ -36,6 +38,29 @@ export default function Dashboard() {
       ...prev,
       [pharmacyName]: (prev[pharmacyName] || 0) + amount,
     }))
+  }
+
+  const handlePaymentSubmit = () => {
+    if (!paymentModal || !paymentAmount) return
+    const amount = parseFloat(paymentAmount)
+    if (isNaN(amount) || amount <= 0) {
+      alert('Noto\'g\'ri miqdor!')
+      return
+    }
+    const debt = paymentModal.total - (paymentModal.type === 'supplier' 
+      ? supplierPayments[paymentModal.name] || 0
+      : pharmacyPayments[paymentModal.name] || 0)
+    if (amount > debt) {
+      alert(`Qarz ${money(debt, kpi.currency)} gacha bo'lishi mumkin!`)
+      return
+    }
+    if (paymentModal.type === 'supplier') {
+      updateSupplierPayment(paymentModal.name, amount)
+    } else {
+      updatePharmacyPayment(paymentModal.name, amount)
+    }
+    setPaymentModal(null)
+    setPaymentAmount('')
   }
 
   useEffect(() => {
@@ -456,15 +481,15 @@ export default function Dashboard() {
                       <td className="text-right py-3 px-4 text-red-600 font-semibold">{money(debt, kpi.currency)}</td>
                       <td className="text-right py-3 px-4">
                         <button
-                          onClick={() => {
-                            const amount = parseFloat(prompt(`Qancha to'lashni xohlaysiz?`, '0') || '0')
-                            if (!isNaN(amount) && amount > 0) {
-                              updateSupplierPayment(supplier.name, amount)
-                            }
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const debt = supplier.total - (supplierPayments[supplier.name] || 0)
+                            setPaymentModal({ type: 'supplier', name: supplier.name, total: supplier.total })
+                            setPaymentAmount('')
                           }}
-                          className="text-blue-600 hover:underline"
+                          className="text-blue-600 hover:underline font-medium"
                         >
-                          Tahrirlash
+                          To'lash
                         </button>
                       </td>
                     </tr>
@@ -478,7 +503,7 @@ export default function Dashboard() {
 
       {/* Dorixonalar Statistikasi */}
       <div className="bg-white rounded-2xl p-6 shadow-md">
-        <h2 className="text-xl font-semibold text-slate-800 mb-4">Dorixonalarga xarid</h2>
+        <h2 className="text-xl font-semibold text-slate-800 mb-4">Dorixonalar xaridi</h2>
         {pharmacyStats.length === 0 ? (
           <p className="text-slate-500 text-center py-4">Ma'lumot yo'q</p>
         ) : (
@@ -514,15 +539,15 @@ export default function Dashboard() {
                       <td className="text-right py-3 px-4 text-red-600 font-semibold">{money(debt, kpi.currency)}</td>
                       <td className="text-right py-3 px-4">
                         <button
-                          onClick={() => {
-                            const amount = parseFloat(prompt(`Qancha to'lashni qabul qilasiz?`, '0') || '0')
-                            if (!isNaN(amount) && amount > 0) {
-                              updatePharmacyPayment(pharmacy.name, amount)
-                            }
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const debt = pharmacy.total - (pharmacyPayments[pharmacy.name] || 0)
+                            setPaymentModal({ type: 'pharmacy', name: pharmacy.name, total: pharmacy.total })
+                            setPaymentAmount('')
                           }}
-                          className="text-blue-600 hover:underline"
+                          className="text-blue-600 hover:underline font-medium"
                         >
-                          Tahrirlash
+                          To'lash
                         </button>
                       </td>
                     </tr>
@@ -533,6 +558,94 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Payment Modal */}
+      {paymentModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-fade-in">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-slate-800">
+                {paymentModal.type === 'supplier' ? '💳 Firmaga To\'lash' : '💳 Dorixonaga To\'lash'}
+              </h2>
+              <button
+                onClick={() => {
+                  setPaymentModal(null)
+                  setPaymentAmount('')
+                }}
+                className="text-slate-400 hover:text-slate-600 text-2xl font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Info cards */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="bg-blue-50 rounded-lg p-4">
+                <p className="text-sm text-slate-600">Jami qarz</p>
+                <p className="text-xl font-bold text-blue-600">{money(paymentModal.total, kpi.currency)}</p>
+              </div>
+              <div className="bg-green-50 rounded-lg p-4">
+                <p className="text-sm text-slate-600">To'langan</p>
+                <p className="text-xl font-bold text-green-600">
+                  {money(
+                    paymentModal.type === 'supplier'
+                      ? supplierPayments[paymentModal.name] || 0
+                      : pharmacyPayments[paymentModal.name] || 0,
+                    kpi.currency
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Remaining balance */}
+            <div className="bg-red-50 rounded-lg p-4 mb-6 border-l-4 border-red-500">
+              <p className="text-sm text-slate-600">Qolgan qarz</p>
+              <p className="text-2xl font-bold text-red-600">
+                {money(
+                  paymentModal.total -
+                    (paymentModal.type === 'supplier'
+                      ? supplierPayments[paymentModal.name] || 0
+                      : pharmacyPayments[paymentModal.name] || 0),
+                  kpi.currency
+                )}
+              </p>
+            </div>
+
+            {/* Input field */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                To'lanayotgan miqdor (so'm)
+              </label>
+              <input
+                type="number"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                placeholder="Miqdorni kiriting..."
+                className="w-full border-2 border-slate-200 rounded-lg p-3 focus:outline-none focus:border-blue-500 text-lg"
+              />
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setPaymentModal(null)
+                  setPaymentAmount('')
+                }}
+                className="flex-1 px-4 py-3 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg font-semibold transition"
+              >
+                Bekor qilish
+              </button>
+              <button
+                onClick={handlePaymentSubmit}
+                className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition transform hover:scale-105"
+              >
+                To'lashni tasdiqlash ✓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

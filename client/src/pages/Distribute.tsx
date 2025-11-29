@@ -91,6 +91,7 @@ export default function Tarqatish(){
 
         <textarea className='w-full border rounded-xl p-3' placeholder='Izohlar...' value={notes} onChange={e=>setNotes(e.target.value)} />
 
+        
         <div className='flex items-center justify-between flex-wrap gap-2'>
           <div className='text-xl font-semibold text-slate-800'>Umumiy: {money(total)}</div>
           <button className='bg-green-600 hover:bg-green-700 transition text-white rounded-xl px-6 py-2 font-semibold' onClick={submit}>Saqlash</button>

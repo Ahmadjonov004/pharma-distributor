@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Medicine } from "../types";
 import { useUserData } from "../hooks/useUserData";
+import { money } from "../utils/format";
 
 export default function Suppliers() {
   const { listMedicines } = useUserData()
@@ -8,6 +9,7 @@ export default function Suppliers() {
   const [supplierStats, setSupplierStats] = useState<
     { name: string; count: number }[]
   >([]);
+  const [selectedSupplier, setSelectedSupplier] = useState<string | null>(null);
 
   function refresh() {
     const meds = listMedicines();
@@ -51,7 +53,8 @@ export default function Suppliers() {
           supplierStats.map((supplier, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-2xl p-6 shadow-md hover:shadow-lg transition"
+              onClick={() => setSelectedSupplier(supplier.name)}
+              className="bg-white rounded-2xl p-6 shadow-md hover:shadow-lg transition cursor-pointer transform hover:scale-105"
             >
               <h3 className="text-lg font-semibold text-slate-800">
                 {supplier.name}
@@ -128,6 +131,93 @@ export default function Suppliers() {
           </div>
         </div>
       </div>
+
+      {/* Detail Modal */}
+      {selectedSupplier && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-slate-800">📦 {selectedSupplier}</h2>
+              <button
+                onClick={() => setSelectedSupplier(null)}
+                className="text-slate-400 hover:text-slate-600 text-3xl font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Filter medicines by supplier */}
+            {(() => {
+              const supplierMeds = items.filter(m => (m.supplier || "Belgilanmagan") === selectedSupplier)
+              const totalStock = supplierMeds.reduce((sum, m) => sum + m.stock, 0)
+              const totalValue = supplierMeds.reduce((sum, m) => sum + m.stock * m.salePrice, 0)
+
+              return (
+                <>
+                  {/* Summary cards */}
+                  <div className="grid grid-cols-3 gap-3 mb-6">
+                    <div className="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-500">
+                      <p className="text-sm text-slate-600">Dorilar soni</p>
+                      <p className="text-2xl font-bold text-purple-600">{supplierMeds.length}</p>
+                    </div>
+                    <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
+                      <p className="text-sm text-slate-600">Jami soni</p>
+                      <p className="text-2xl font-bold text-blue-600">{totalStock} ta</p>
+                    </div>
+                    <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-500">
+                      <p className="text-sm text-slate-600">Qiymati</p>
+                      <p className="text-2xl font-bold text-green-600">{money(totalValue)}</p>
+                    </div>
+                  </div>
+
+                  {/* Medicines table */}
+                  {supplierMeds.length === 0 ? (
+                    <div className="text-center py-8 text-slate-500">
+                      <p className="text-lg">Bu firmadan dori yo'q</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-slate-50 border-b-2">
+                          <tr>
+                            <th className="text-left py-3 px-4 font-semibold">Dori nomi</th>
+                            <th className="text-center py-3 px-4 font-semibold">Stock</th>
+                            <th className="text-right py-3 px-4 font-semibold">Haridi</th>
+                            <th className="text-right py-3 px-4 font-semibold">Sotiluvi</th>
+                            <th className="text-right py-3 px-4 font-semibold">Qiymati</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {supplierMeds.map((med, idx) => (
+                            <tr key={idx} className="border-b hover:bg-slate-50">
+                              <td className="py-3 px-4">
+                                <div>
+                                  <p className="font-semibold text-slate-800">{med.name}</p>
+                                  <p className="text-xs text-slate-500">SKU: {med.sku}</p>
+                                </div>
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-semibold">
+                                  {med.stock}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-right text-slate-600">{money(med.purchasePrice)}</td>
+                              <td className="py-3 px-4 text-right text-slate-600">{money(med.salePrice)}</td>
+                              <td className="py-3 px-4 text-right font-semibold text-green-600">
+                                {money(med.stock * med.salePrice)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
+              )
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

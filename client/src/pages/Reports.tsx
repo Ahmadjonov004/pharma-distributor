@@ -83,7 +83,39 @@ export default function Reports() {
           <input type="date" className="w-full border border-gray-300 rounded-lg p-2" value={to} onChange={(e) => setTo(e.target.value)} />
         </div>
         <button onClick={() => { setFrom(""); setTo(""); }} className="bg-gray-200 rounded-lg py-2">Filtrni tozalash</button>
-        <button onClick={() => api.exportCSV()} className="bg-blue-600 text-white rounded-lg py-2">CSV eksport</button>
+        <button 
+          onClick={() => {
+            // Create CSV export with filtered data
+            const headers = ['Sana', 'Dorixona', 'Dori nomi', 'Soni', 'Narxi', 'Chegirma', 'Jami']
+            const rows: string[] = []
+
+            filtered.forEach((d) => {
+              const pharmacy = phs.find((p) => p.id === d.pharmacyId)?.name || 'Noma\'lum'
+              d.items.forEach((item) => {
+                const medicine = meds.find((m) => m.id === item.medicineId)?.name || 'Noma\'lum'
+                const date = new Date(d.date).toLocaleDateString('uz-UZ')
+                const total = item.quantity * item.unitPrice - (item.discount || 0)
+                rows.push(
+                  `"${date}","${pharmacy}","${medicine}",${item.quantity},${item.unitPrice},${item.discount || 0},${total}`
+                )
+              })
+            })
+
+            const csvContent = [headers.join(','), ...rows].join('\n')
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+            const link = document.createElement('a')
+            const url = URL.createObjectURL(blob)
+            link.setAttribute('href', url)
+            link.setAttribute('download', `tarqatishlar_${new Date().toISOString().split('T')[0]}.csv`)
+            link.style.visibility = 'hidden'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+          }}
+          className="bg-green-600 text-white rounded-lg py-2 hover:bg-green-700 transition font-medium"
+        >
+          📥 CSV eksport
+        </button>
       </div>
 
       {/* Table */}

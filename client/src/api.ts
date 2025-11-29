@@ -208,6 +208,42 @@ export const api = {
   },
 
   exportCSV: () => {
-    // CSV export logic
+    const userDB = getUserData()
+    if (!userDB) return
+
+    const medicines = userDB?.medicines || []
+    const pharmacies = userDB?.pharmacies || []
+    const distributions = userDB?.distributions || []
+
+    // Create CSV headers
+    const headers = ['Sana', 'Dorixona', 'Dori nomi', 'Soni', 'Narxi', 'Chegirma', 'Jami']
+    const rows: string[] = []
+
+    // Add data rows
+    distributions.forEach((d: Distribution) => {
+      const pharmacy = pharmacies.find((p: Pharmacy) => p.id === d.pharmacyId)?.name || 'Noma\'lum'
+      d.items.forEach((item) => {
+        const medicine = medicines.find((m: Medicine) => m.id === item.medicineId)?.name || 'Noma\'lum'
+        const date = new Date(d.date).toLocaleDateString('uz-UZ')
+        const total = item.quantity * item.unitPrice - (item.discount || 0)
+        rows.push(
+          `"${date}","${pharmacy}","${medicine}",${item.quantity},${item.unitPrice},${item.discount || 0},${total}`
+        )
+      })
+    })
+
+    // Create CSV content
+    const csvContent = [headers.join(','), ...rows].join('\n')
+
+    // Download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `tarqatishlar_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   },
 };
