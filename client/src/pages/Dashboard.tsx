@@ -274,6 +274,43 @@ export default function Dashboard() {
 
   const detailedModal = getDetailedModal()
 
+  // Prepare turnover report (last 12 months + pharmacy breakdown)
+  const getTurnoverReport = () => {
+    const now = new Date()
+    const months: { label: string; key: string }[] = []
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      months.push({ label: d.toLocaleDateString('uz-UZ', { month: 'short', year: 'numeric' }), key: `${d.getFullYear()}-${d.getMonth()}` })
+    }
+
+    const totals = months.map(() => 0)
+
+    distributions.forEach((d) => {
+      const date = new Date(d.date)
+      const key = `${date.getFullYear()}-${date.getMonth()}`
+      const idx = months.findIndex((m) => m.key === key)
+      if (idx >= 0) {
+        d.items.forEach((item) => {
+          totals[idx] += (item.quantity * item.unitPrice) - (item.discount || 0)
+        })
+      }
+    })
+
+    // Pharmacy breakdown
+    const pharmMap: Record<string, number> = {}
+    distributions.forEach((d) => {
+      const pharm = pharmacies.find((p) => p.id === d.pharmacyId)
+      const name = pharm?.name || "Noma'lum"
+      d.items.forEach((item) => {
+        pharmMap[name] = (pharmMap[name] || 0) + (item.quantity * item.unitPrice) - (item.discount || 0)
+      })
+    })
+
+    const pharmacyList = Object.entries(pharmMap).map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total)
+
+    return { months: months.map((m) => m.label), totals, pharmacyList }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -291,20 +328,145 @@ export default function Dashboard() {
 
       {/* Modal */}
       {selected && modal && selectedType === 'kpi' && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-2xl shadow-lg w-[90%] max-w-md p-6 animate-fade-in">
-            <h2 className="text-xl font-semibold mb-2 text-slate-800">{modal.title}</h2>
-            <p className="text-slate-600 leading-relaxed">{modal.desc}</p>
-            <div className="mt-5 flex justify-end">
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition"
-              >
-                Yopish
-              </button>
+        selected === 'turnover' ? (
+          (() => {
+            const report = getTurnoverReport()
+            const months = report.months
+            const totals = report.totals
+            const pharmacyList = report.pharmacyList
+            const width = 780
+            const height = 180
+            const padding = 24
+            const maxVal = Math.max(...totals, 1)
+
+            const points = totals.map((t, i) => {
+              const x = Math.round(padding + (i / (totals.length - 1)) * (width - padding * 2))
+              const y = Math.round(height - padding - (t / maxVal) * (height - padding * 2))
+              return `${x},${y}`
+            }).join(' ')
+
+            return (
+              <div className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-40 z-50 p-6">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-y-auto p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-800">Oylik aylanma — Diagramma va hisobot</h2>
+                      <p className="text-slate-600">Oxirgi 12 oy bo‘yicha oylik aylanma grafigi va dorixonalar bo‘yicha taqsimot.</p>
+                    </div>
+                    <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 text-2xl">✕</button>
+                  </div>
+
+                  {/* Line chart */}
+                  <div className="mb-6">
+                    <div className="text-sm text-slate-600 mb-2">Oylik aylanma (so'm)</div>
+                    <div className="w-full overflow-x-auto">
+                      <svg width="100%" viewBox={`0 0 ${width} ${height}`} className="rounded-lg bg-slate-50">
+                        {/* grid lines */}
+                        {[0,0.25,0.5,0.75,1].map((g,i)=>{
+                          const y = padding + (height - padding*2) * g
+                          return <line key={i} x1={padding} x2={width-padding} y1={y} y2={y} stroke="#eef2ff" strokeWidth={1} />
+                        })}
+
+                        {/* area under line */}
+                        <polyline fill="rgba(59,130,246,0.08)" stroke="transparent" points={`${padding},${height-padding} ${points} ${width-padding},${height-padding}`} />
+
+                        {/* line */}
+                        <polyline fill="none" stroke="#2563eb" strokeWidth={2} points={points} />
+
+                        {/* points */}
+                        {totals.map((t,i)=>{
+                          const coords = points.split(' ')[i]
+                          const [x,y] = coords.split(',')
+                          return <circle key={i} cx={Number(x)} cy={Number(y)} r={3.5} fill="#1d4ed8" />
+                        })}
+                      </svg>
+                    </div>
+
+                    {/* X labels */}
+                    <div className="mt-3 text-xs text-slate-500 grid grid-cols-12 gap-1">
+                      {months.map((m, i) => (
+                        <div key={i} className="col-span-1 text-center truncate">{m}</div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Pharmacy breakdown */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-800 mb-3">Dorixonalar bo'yicha taqsimot</h3>
+                      {pharmacyList.length === 0 ? (
+                        <p className="text-slate-500">Ma'lumot mavjud emas</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {pharmacyList.slice(0,6).map((p, idx) => {
+                            const pct = Math.round((p.total / Math.max(...pharmacyList.map(x=>x.total))) * 100)
+                            return (
+                              <div key={idx} className="space-y-1">
+                                <div className='flex justify-between'>
+                                  <div className='text-sm text-slate-700'>{p.name}</div>
+                                  <div className='text-sm font-semibold text-green-600'>{money(p.total, kpi.currency)}</div>
+                                </div>
+                                <div className='w-full bg-slate-100 rounded-full h-2'>
+                                  <div className='bg-blue-600 h-2 rounded-full' style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-800 mb-3">Oxirgi 12 oy summasi</h3>
+                      <div className="bg-slate-50 p-4 rounded-lg">
+                        <div className="text-sm text-slate-600">Jami (12 oy)</div>
+                        <div className="text-2xl font-bold text-blue-600 mt-1">{money(totals.reduce((s,a)=>s+a,0), kpi.currency)}</div>
+                        <div className="mt-4 text-sm text-slate-600">Eng yuqori oy: {months[totals.indexOf(Math.max(...totals))] || '—'}</div>
+                      </div>
+                      <div className="mt-4">
+                        <h4 className="text-sm font-medium text-slate-700 mb-2">Top dorixonalar</h4>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="text-left text-slate-500 border-b">
+                              <tr><th className="py-2">Dorixona</th><th className="py-2 text-right">Jami</th></tr>
+                            </thead>
+                            <tbody>
+                              {pharmacyList.slice(0,8).map((p, i) => (
+                                <tr key={i} className="border-t hover:bg-slate-50">
+                                  <td className="py-2">{p.name}</td>
+                                  <td className="py-2 text-right font-semibold text-blue-600">{money(p.total, kpi.currency)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-end">
+                    <button onClick={closeModal} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl">Yopish</button>
+                  </div>
+                </div>
+              </div>
+            )
+          })()
+        ) : (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+            <div className="bg-white rounded-2xl shadow-lg w-[90%] max-w-md p-6 animate-fade-in">
+              <h2 className="text-xl font-semibold mb-2 text-slate-800">{modal.title}</h2>
+              <p className="text-slate-600 leading-relaxed">{modal.desc}</p>
+              <div className="mt-5 flex justify-end">
+                <button
+                  onClick={closeModal}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition"
+                >
+                  Yopish
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )
       )}
 
       {/* Detailed Modal - Firmalar */}
