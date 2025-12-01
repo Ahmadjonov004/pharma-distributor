@@ -6,11 +6,33 @@
   "scripts": {
     "dev": "node ./node_modules/nodemon/bin/nodemon.js index.js",
     "build": "echo 'No build needed for server'",
-    "start": "node index.js"
+    "start": "node index.js",
+    "migrate-sqlite": "node migrateToSqlite.js",
+    "migrate-postgres": "node migrateToPostgres.js"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.0",
+    "better-sqlite3": "^8.3.0"
+  },
+  "optionalDependencies": {
+    "helmet": "^7.0.0",
+    "express-rate-limit": "^6.7.0",
+    "morgan": "^1.10.0",
+    "joi": "^17.9.2"
+  },
+  "pg": "^8.11.0",
+  "dotenv": "^16.3.1",
+  "optionalDependencies": {
+    "helmet": "^7.0.0",
+    "express-rate-limit": "^6.7.0",
+    "morgan": "^1.10.0",
+    "joi": "^17.9.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"

@@ -9,6 +9,7 @@ import Settings from './pages/Settings'
 import SupplierAnalytics from './pages/SupplierAnalytics'
 import Auth from './pages/Auth'
 import { Home, Package, Truck, Building2, BarChart3, Settings as Cog, Factory, LogOut } from 'lucide-react'
+import SyncStatus from './components/SyncStatus'
 
 interface User {
   id: string
@@ -53,7 +54,12 @@ function Frame() {
       <aside className='bg-white shadow-lg md:sticky md:top-0 h-full border-r flex flex-col'>
         <div className='p-5 border-b'>
           <div className='text-xl font-semibold text-slate-700'>💊 Narimon Pharma</div>
-          <div className='text-xs text-slate-500'>Asilbek</div>
+          <div className='mt-2 flex items-center justify-between gap-3'>
+            <div className='text-xs text-slate-500'>Asilbek</div>
+            <div>
+              <SyncStatus />
+            </div>
+          </div>
         </div>
         <nav className='p-3 space-y-1 flex-1'>
           {nav.map(n=>{ const Icon=n.icon as any; return (

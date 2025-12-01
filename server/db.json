@@ -3,6 +3,7 @@
     "currency": "UZS",
     "distributorName": "Pharma Distributor"
   },
+  "users": [],
   "medicines": [
     {
       "id": "d6axhhavmhu5ou7f",

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Mail, Lock, User, LogIn } from 'lucide-react'
+import auth from '../auth'
 
 interface User {
   id: string
@@ -88,34 +89,44 @@ export default function Auth() {
     e.preventDefault()
     setError('')
     setLoading(true)
+    try{
+      // Try server login first
+      const res = await auth.login(loginForm.email, loginForm.password)
+      if(res && res.token){
+        setLoading(false)
+        navigate('/')
+        return
+      }
+    }catch(err){
+      // server failed -> fallback to local auth
+      try {
+        const users = getUsers()
+        const user = users.find(
+          u => u.email === loginForm.email && u.password === loginForm.password
+        )
 
-    try {
-      const users = getUsers()
-      const user = users.find(
-        u => u.email === loginForm.email && u.password === loginForm.password
-      )
+        if (!user) {
+          setError('Email yoki parol noto\'g\'ri!')
+          setLoading(false)
+          return
+        }
 
-      if (!user) {
-        setError('Email yoki parol noto\'g\'ri!')
+        localStorage.setItem('pharma_currentUser', JSON.stringify(user))
+        const userDB = localStorage.getItem(`pharma_data_${user.id}`)
+        if (!userDB) {
+          createUserDatabase(user.id)
+        }
+
+        setLoading(false)
+        navigate('/')
+        return
+      } catch (e) {
+        setError('Xatolik yuz berdi')
         setLoading(false)
         return
       }
-
-      // Hozirgi foydalanuvchini session-da saqlash
-      localStorage.setItem('pharma_currentUser', JSON.stringify(user))
-      
-      // Agar bu foydalanuvchining ma'lumotlar bazasi bo'lmasa, yaratish
-      const userDB = localStorage.getItem(`pharma_data_${user.id}`)
-      if (!userDB) {
-        createUserDatabase(user.id)
-      }
-
-      setLoading(false)
-      navigate('/')
-    } catch (err) {
-      setError('Xatolik yuz berdi')
-      setLoading(false)
     }
+    setLoading(false)
   }
 
   // Register
@@ -123,7 +134,6 @@ export default function Auth() {
     e.preventDefault()
     setError('')
     setLoading(true)
-
     try {
       // Tekshiruv
       if (!registerForm.name.trim()) {
@@ -158,24 +168,36 @@ export default function Auth() {
         return
       }
 
-      // Yangi foydalanuvchini yaratish
-      const newUser: User = {
-        id: Date.now().toString(),
-        name: registerForm.name,
-        email: registerForm.email,
-        password: registerForm.password,
-        createdAt: new Date().toISOString()
+      // Try server register first
+      try{
+        const res = await auth.register(registerForm.email, registerForm.password, registerForm.name)
+        if(res && res.token){
+          setLoading(false)
+          navigate('/')
+          return
+        }
+      }catch(err){
+        // fallback to local register
+        const newUser: User = {
+          id: Date.now().toString(),
+          name: registerForm.name,
+          email: registerForm.email,
+          password: registerForm.password,
+          createdAt: new Date().toISOString()
+        }
+        try{
+          saveUser(newUser)
+          createUserDatabase(newUser.id)
+          localStorage.setItem('pharma_currentUser', JSON.stringify(newUser))
+          setLoading(false)
+          navigate('/')
+          return
+        }catch(e){
+          setError('Xatolik yuz berdi')
+          setLoading(false)
+          return
+        }
       }
-
-      saveUser(newUser)
-
-      // Yangi foydalanuvchi uchun ma'lumotlar bazasi yaratish
-      createUserDatabase(newUser.id)
-
-      // Avtomatik login
-      localStorage.setItem('pharma_currentUser', JSON.stringify(newUser))
-      setLoading(false)
-      navigate('/')
     } catch (err) {
       setError('Xatolik yuz berdi')
       setLoading(false)
