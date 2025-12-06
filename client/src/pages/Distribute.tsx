@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { Pharmacy, Medicine } from '../types'
 import { useUserData } from '../hooks/useUserData'
 import { money } from '../utils/format'
-
+import Toast from '../components/Toast'
 export default function Tarqatish(){
   const { listPharmacies, listMedicines, createDistribution } = useUserData()
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([])
@@ -11,6 +11,7 @@ export default function Tarqatish(){
   const [date, setDate] = useState(new Date().toISOString().slice(0,10))
   const [lines, setLines] = useState<{medicineId:string, quantity:number, unitPrice:number, discount:number}[]>([])
   const [notes, setNotes] = useState('')
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
 
   useEffect(()=>{
     const pharms = listPharmacies()
@@ -28,9 +29,29 @@ export default function Tarqatish(){
   const total = useMemo(()=> lines.reduce((s,l)=> s + (l.unitPrice*l.quantity) - (l.discount||0), 0), [lines])
 
   const submit = async () => {
-    if(!pharmacyId || lines.length===0) return
-    createDistribution({ pharmacyId, date: new Date(date).toISOString(), items: lines.map(l=>({ medicineId: l.medicineId, quantity: l.quantity, unitPrice: l.unitPrice, discount: l.discount||0 })), notes })
-    setLines([]); setNotes(''); alert('Tarqatish saqlandi!')
+    if(!pharmacyId || lines.length===0) {
+      setToast({ message: 'Dorixona va dori qatorlarini tanlang!', type: 'error' })
+      return
+    }
+    try {
+      const result = createDistribution({ 
+        pharmacyId, 
+        date: new Date(date).toISOString(), 
+        items: lines.map(l=>({ medicineId: l.medicineId, quantity: l.quantity, unitPrice: l.unitPrice, discount: l.discount||0 })), 
+        notes 
+      })
+      
+      if(result && result.id) {
+        setLines([])
+        setNotes('')
+        setToast({ message: '✓ Tarqatish saqlandi va yuborildi!', type: 'success' })
+      } else {
+        setToast({ message: 'Xatolik: Tarqatish saqlana olmadi', type: 'error' })
+      }
+    } catch(err) {
+      console.error('Tarqatish xatosi:', err)
+      setToast({ message: 'Xatolik: ' + (err instanceof Error ? err.message : 'Birinchi qayta urinib ko\'ring'), type: 'error' })
+    }
   }
 
   return (
@@ -97,6 +118,17 @@ export default function Tarqatish(){
           <button className='bg-green-600 hover:bg-green-700 transition text-white rounded-xl px-6 py-2 font-semibold' onClick={submit}>Saqlash</button>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={3000}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   )
 }
+

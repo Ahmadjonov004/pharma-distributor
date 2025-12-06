@@ -309,6 +309,42 @@ export const useUserData = () => {
     [getUserDB, saveUserDB]
   )
 
+  // Payment tracking functions
+  const getPayments = useCallback(() => {
+    if (!currentUser) return { suppliers: {}, pharmacies: {} }
+    const key = `pharma_payments_${currentUser.id}`
+    const data = localStorage.getItem(key)
+    if(data) return JSON.parse(data)
+    return { suppliers: {}, pharmacies: {} }
+  }, [currentUser])
+
+  const savePayment = useCallback(
+    (type: 'supplier' | 'pharmacy', name: string, amount: number) => {
+      if (!currentUser) return
+      const payments = getPayments()
+      const category = type === 'supplier' ? 'suppliers' : 'pharmacies'
+      payments[category] = payments[category] || {}
+      payments[category][name] = (payments[category][name] || 0) + amount
+      const key = `pharma_payments_${currentUser.id}`
+      localStorage.setItem(key, JSON.stringify(payments))
+      
+      // Also enqueue for sync if logged in
+      const token = localStorage.getItem('pharma_token')
+      if(token){
+        const queueKey = `pharma_sync_queue_${currentUser.id}`
+        const q = localStorage.getItem(queueKey)
+        const queue = q ? JSON.parse(q) : []
+        queue.push({ 
+          category: 'payments', 
+          op: 'create', 
+          item: { type, name, amount, timestamp: new Date().toISOString() } 
+        })
+        localStorage.setItem(queueKey, JSON.stringify(queue))
+      }
+    },
+    [currentUser, getPayments]
+  )
+
   return {
     currentUser,
     loading,
@@ -322,6 +358,8 @@ export const useUserData = () => {
     deletePharmacy,
     listDistributions,
     createDistribution,
-    deleteDistribution
+    deleteDistribution,
+    getPayments,
+    savePayment
   }
 }

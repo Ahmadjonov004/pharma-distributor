@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useUserData } from '../hooks/useUserData'
 import { money } from '../utils/format'
+import Toast from '../components/Toast'
 import type { Distribution, Pharmacy, Medicine } from '../types'
 
 export default function Dashboard() {
-  const { listDistributions, listPharmacies, listMedicines } = useUserData()
+  const { listDistributions, listPharmacies, listMedicines, getPayments, savePayment } = useUserData()
   const [kpi, setKpi] = useState({
     monthTurnover: 0,
     monthProfit: 0,
@@ -25,12 +26,21 @@ export default function Dashboard() {
   const [pharmacyPayments, setPharmacyPayments] = useState<Record<string, number>>({})
   const [paymentModal, setPaymentModal] = useState<{ type: 'supplier' | 'pharmacy'; name: string; total: number } | null>(null)
   const [paymentAmount, setPaymentAmount] = useState('')
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
+
+  // Load payments from localStorage on mount
+  useEffect(() => {
+    const payments = getPayments()
+    setSupplierPayments(payments.suppliers || {})
+    setPharmacyPayments(payments.pharmacies || {})
+  }, [getPayments])
 
   const updateSupplierPayment = (supplierName: string, amount: number) => {
     setSupplierPayments((prev) => ({
       ...prev,
       [supplierName]: (prev[supplierName] || 0) + amount,
     }))
+    savePayment('supplier', supplierName, amount)
   }
 
   const updatePharmacyPayment = (pharmacyName: string, amount: number) => {
@@ -38,20 +48,21 @@ export default function Dashboard() {
       ...prev,
       [pharmacyName]: (prev[pharmacyName] || 0) + amount,
     }))
+    savePayment('pharmacy', pharmacyName, amount)
   }
 
   const handlePaymentSubmit = () => {
     if (!paymentModal || !paymentAmount) return
     const amount = parseFloat(paymentAmount)
     if (isNaN(amount) || amount <= 0) {
-      alert('Noto\'g\'ri miqdor!')
+      setToast({ message: 'Noto\'g\'ri miqdor!', type: 'error' })
       return
     }
     const debt = paymentModal.total - (paymentModal.type === 'supplier' 
       ? supplierPayments[paymentModal.name] || 0
       : pharmacyPayments[paymentModal.name] || 0)
     if (amount > debt) {
-      alert(`Qarz ${money(debt, kpi.currency)} gacha bo'lishi mumkin!`)
+      setToast({ message: `Qarz ${money(debt, kpi.currency)} gacha bo'lishi mumkin!`, type: 'error' })
       return
     }
     if (paymentModal.type === 'supplier') {
@@ -61,6 +72,7 @@ export default function Dashboard() {
     }
     setPaymentModal(null)
     setPaymentAmount('')
+    setToast({ message: ' To\'lash saqlandi!', type: 'success' })
   }
 
   useEffect(() => {
@@ -807,6 +819,16 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={3000}
+          onClose={() => setToast(null)}
+        />
       )}
     </div>
   )
