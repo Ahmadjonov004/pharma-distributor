@@ -1,0 +1,42 @@
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+
+// Routes
+const authRoutes = require('./routes/auth');
+const productRoutes = require('./routes/products');
+const orderRoutes = require('./routes/orders');
+
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use('/auth', authRoutes);
+app.use('/products', productRoutes);
+app.use('/orders', orderRoutes);
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', message: 'Backend is running' });
+});
+
+const PORT = process.env.PORT || 4000;
+
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/pharma-distributor', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log('✓ MongoDB connected');
+  app.listen(PORT, () => {
+    console.log(`✓ Server running on port ${PORT}`);
+    console.log(`✓ Health check: http://localhost:${PORT}/health`);
+  });
+}).catch((err) => {
+  console.error('✗ MongoDB connection error:', err);
+  process.exit(1);
+});

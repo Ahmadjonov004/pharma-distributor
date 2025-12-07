@@ -1,375 +1,234 @@
-import { useEffect, useState } from "react";
-import type { Medicine } from "../types";
-import { useUserData } from "../hooks/useUserData";
-import { money, shortDate } from "../utils/format";
+import { useEffect, useState } from 'react';
+import { useData } from '../context/DataContext';
+import { Plus, Trash2, Edit2 } from 'lucide-react';
+
+interface Product {
+  _id?: string;
+  name: string;
+  description: string;
+  price: number;
+  quantity: number;
+}
 
 export default function Inventory() {
-  const { listMedicines, createMedicine, updateMedicine, deleteMedicine } = useUserData();
-  const [items, setItems] = useState<Medicine[]>([]);
-  const [form, setForm] = useState({
-    name: "",
-    sku: "",
-    unit: "tablet",
-    purchasePrice: 0,
-    salePrice: 0,
-    expiry: "",
-    stock: 0,
-    supplier: "",
+  const { products, addProduct, updateProduct, deleteProduct, isLoading, error } = useData();
+  const [items, setItems] = useState<any[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<Product>({
+    name: '',
+    description: '',
+    price: 0,
+    quantity: 0,
   });
-  const [editItem, setEditItem] = useState<Medicine | null>(null);
-  const [deleteItem, setDeleteItem] = useState<Medicine | null>(null);
-  const [selectedItem, setSelectedItem] = useState<Medicine | null>(null);
-  const [addStockValue, setAddStockValue] = useState<number>(0);
-  const [loading, setLoading] = useState(false);
-  const [sortField, setSortField] = useState<string>("name");
-  const [sortAsc, setSortAsc] = useState<boolean>(true);
-
-  function refresh() {
-    const meds = listMedicines();
-    setItems(meds);
-  }
 
   useEffect(() => {
-    refresh();
-  }, [listMedicines]);
+    setItems(products);
+  }, [products]);
 
-  const handleSort = (field: keyof Medicine) => {
-    if (sortField === field) setSortAsc(!sortAsc);
-    else {
-      setSortField(field);
-      setSortAsc(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!form.name || form.price <= 0) {
+      alert('Name and price are required');
+      return;
     }
-    setItems((prev) =>
-      [...prev].sort((a, b) => {
-        const valA = a[field] ?? "";
-        const valB = b[field] ?? "";
-        if (typeof valA === "number" && typeof valB === "number")
-          return sortAsc ? valA - valB : valB - valA;
-        return sortAsc
-          ? String(valA).localeCompare(String(valB))
-          : String(valB).localeCompare(String(valA));
-      })
-    );
+
+    try {
+      if (editingId) {
+        await updateProduct(editingId, form);
+        setEditingId(null);
+      } else {
+        await addProduct(form);
+      }
+      setForm({ name: '', description: '', price: 0, quantity: 0 });
+      setShowForm(false);
+    } catch (err: any) {
+      alert(err.message);
+    }
   };
 
-  const submit = async () => {
-    if (!form.name) return;
-    createMedicine(form as any);
+  const handleEdit = (product: any) => {
     setForm({
-      name: "",
-      sku: "",
-      unit: "tablet",
-      purchasePrice: 0,
-      salePrice: 0,
-      expiry: "",
-      stock: 0,
-      supplier: "",
+      name: product.name,
+      description: product.description || '',
+      price: product.price,
+      quantity: product.quantity,
     });
-    refresh();
+    setEditingId(product._id);
+    setShowForm(true);
   };
 
-  const saveEdit = async () => {
-    if (!editItem) return;
-    updateMedicine(editItem.id, editItem);
-    setEditItem(null);
-    refresh();
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteItem) return;
-    deleteMedicine(deleteItem.id);
-    setDeleteItem(null);
-    refresh();
-  };
-
-  const addStock = async (id: string) => {
-    if (addStockValue <= 0) return;
-    setLoading(true);
-    const med = items.find((m) => m.id === id);
-    if (!med) return;
-    updateMedicine(id, { stock: med.stock + addStockValue });
-    setAddStockValue(0);
-    setLoading(false);
-    refresh();
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Delete this product?')) {
+      try {
+        await deleteProduct(id);
+      } catch (err: any) {
+        alert(err.message);
+      }
+    }
   };
 
   return (
-    <div className="space-y-6 p-4 md:p-8">
-      {/* HEADER */}
-      <div className="flex items-end justify-between flex-wrap gap-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Dori ombori</h1>
-          <p className="text-slate-600">
-            Hozirgi dorilar ro‘yxati va miqdori
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Inventory</h1>
+          <p className="text-gray-600 mt-1">Manage your products</p>
         </div>
+        <button
+          onClick={() => {
+            setShowForm(!showForm);
+            setEditingId(null);
+            setForm({ name: '', description: '', price: 0, quantity: 0 });
+          }}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
+        >
+          <Plus size={20} />
+          Add Product
+        </button>
+      </div>
 
-        {/* ADD FORM */}
-        <div className="bg-white rounded-2xl p-5 shadow-md w-full md:w-auto">
-          <h2 className="text-lg font-semibold mb-3">Yangi dori qo‘shish</h2>
-          <div className="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4">
-            {[
-              { label: "Dori nomi", key: "name", placeholder: "Masalan: Paratsetamol" },
-              { label: "SKU kodi", key: "sku", placeholder: "Masalan: PCT100" },
-              { label: "Firmaning nomi", key: "supplier", placeholder: "Masalan: Farmaland" },
-            ].map((f) => (
-              <div key={f.key} className="flex flex-col">
-                <label className="text-sm font-medium text-slate-700 mb-1">{f.label}</label>
-                <input
-                  className="input"
-                  placeholder={f.placeholder}
-                  value={(form as any)[f.key]}
-                  onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                />
-              </div>
-            ))}
+      {/* Error Message */}
+      {error && <div className="p-4 bg-red-50 border border-red-200 rounded text-red-700">{error}</div>}
 
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-slate-700 mb-1">Birlik turi</label>
-              <select
-                className="input"
-                value={form.unit}
-                onChange={(e) => setForm({ ...form, unit: e.target.value })}
-              >
-                <option>tablet</option>
-                <option>capsula</option>
-                <option>ml</option>
-                <option>maz</option>
-                <option>sirop</option>
-                <option>bottle</option>
-                <option>boshqa</option>
-              </select>
-            </div>
+      {/* Add/Edit Form */}
+      {showForm && (
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-4">
+          <h2 className="text-xl font-bold">{editingId ? 'Edit Product' : 'Add New Product'}</h2>
 
-            {[
-              { label: "Xarid narxi (so‘m)", key: "purchasePrice" },
-              { label: "Sotuv narxi (so‘m)", key: "salePrice" },
-              { label: "Miqdor", key: "stock" },
-            ].map((f) => (
-              <div key={f.key} className="flex flex-col">
-                <label className="text-sm font-medium text-slate-700 mb-1">{f.label}</label>
-                <input
-                  className="input"
-                  type="number"
-                  placeholder="0"
-                  value={(form as any)[f.key] || ""}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      [f.key]: Number(e.target.value || 0),
-                    })
-                  }
-                />
-              </div>
-            ))}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., Paracetamol 500mg"
+              disabled={isLoading}
+            />
+          </div>
 
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-slate-700 mb-1">
-                Yaroqlilik muddati
-              </label>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Product description"
+              rows={3}
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Price (UZS) *</label>
               <input
-                className="input"
-                type="date"
-                value={form.expiry}
-                onChange={(e) => setForm({ ...form, expiry: e.target.value })}
+                type="number"
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="0"
+                disabled={isLoading}
               />
             </div>
 
-            <div className="flex items-end">
-              <button onClick={submit} className="btn-primary w-full h-[42px]">
-                Qo‘shish
-              </button>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+              <input
+                type="number"
+                value={form.quantity}
+                onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="0"
+                disabled={isLoading}
+              />
             </div>
           </div>
-        </div>
+
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition disabled:opacity-50"
+            >
+              {isLoading ? 'Saving...' : editingId ? 'Update' : 'Add'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowForm(false);
+                setEditingId(null);
+              }}
+              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-900 py-2 rounded-lg transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Products Table */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        {isLoading ? (
+          <div className="p-6 text-center text-gray-600">Loading products...</div>
+        ) : items.length === 0 ? (
+          <div className="p-6 text-center text-gray-600">No products yet. Click "Add Product" to get started.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Name</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Price</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Quantity</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Total Value</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {items.map((product) => (
+                  <tr key={product._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="font-medium text-gray-900">{product.name}</p>
+                        {product.description && (
+                          <p className="text-sm text-gray-600">{product.description}</p>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-gray-900">
+                      {product.price.toLocaleString()} UZS
+                    </td>
+                    <td className="px-6 py-4 text-gray-900">{product.quantity}</td>
+                    <td className="px-6 py-4 font-semibold text-gray-900">
+                      {(product.price * product.quantity).toLocaleString()} UZS
+                    </td>
+                    <td className="px-6 py-4 flex items-center gap-2">
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="p-2 hover:bg-blue-100 text-blue-600 rounded transition"
+                        disabled={isLoading}
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product._id)}
+                        className="p-2 hover:bg-red-100 text-red-600 rounded transition"
+                        disabled={isLoading}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
-
-      {/* TABLE */}
-      <div className="bg-white rounded-2xl p-4 shadow-md overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="text-left text-slate-500 border-b">
-            <tr>
-              {[
-                { key: "name", label: "Nomi" },
-                { key: "sku", label: "SKU" },
-                { key: "supplier", label: "Firma" },
-                { key: "unit", label: "Birlik" },
-                { key: "expiry", label: "Yaroqlilik" },
-                { key: "purchasePrice", label: "Xarid" },
-                { key: "salePrice", label: "Sotuv" },
-                { key: "stock", label: "Miqdor" },
-              ].map((c) => (
-                <th
-                  key={c.key}
-                  onClick={() => handleSort(c.key as keyof Medicine)}
-                  className="py-2 cursor-pointer select-none hover:text-blue-600"
-                >
-                  {c.label} {sortField === c.key ? (sortAsc ? "▲" : "▼") : ""}
-                </th>
-              ))}
-              <th className="text-right">Amallar</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((m) => (
-              <tr
-                key={m.id}
-                className="border-t hover:bg-slate-50 cursor-pointer"
-                onClick={() => setSelectedItem(m)}
-              >
-                <td className="py-2 font-medium">{m.name}</td>
-                <td>{m.sku}</td>
-                <td>{m.supplier || "-"}</td>
-                <td>{m.unit}</td>
-                <td>{shortDate(m.expiry)}</td>
-                <td>{money(m.purchasePrice)}</td>
-                <td>{money(m.salePrice)}</td>
-                <td>{m.stock}</td>
-                <td className="text-right">
-                  <div className="flex gap-2 justify-end flex-wrap">
-                    <input
-                      type="number"
-                      placeholder="+"
-                      className="w-16 input text-center"
-                      value={addStockValue || ""}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={(e) =>
-                        setAddStockValue(Number(e.target.value))
-                      }
-                    />
-                    <button
-                      disabled={loading}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addStock(m.id);
-                      }}
-                      className="btn text-blue-600 border-blue-300"
-                    >
-                      Qo‘shish
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditItem(m);
-                      }}
-                      className="btn text-green-600 border-green-300"
-                    >
-                      Tahrirlash
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteItem(m);
-                      }}
-                      className="btn text-red-600 border-red-300"
-                    >
-                      O‘chirish
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* MODAL – Dorining batafsil ma’lumoti */}
-      {selectedItem && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-          onClick={() => setSelectedItem(null)}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-lg p-6 w-[90%] max-w-md space-y-3"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-xl font-semibold mb-2">{selectedItem.name}</h2>
-            <p>SKU: {selectedItem.sku}</p>
-            <p>Firma: {selectedItem.supplier || "-"}</p>
-            <p>Birlik: {selectedItem.unit}</p>
-            <p>Yaroqlilik: {shortDate(selectedItem.expiry)}</p>
-            <p>Xarid narxi: {money(selectedItem.purchasePrice)}</p>
-            <p>Sotuv narxi: {money(selectedItem.salePrice)}</p>
-            <p>Miqdor: {selectedItem.stock} dona</p>
-            <div className="text-right">
-              <button className="btn" onClick={() => setSelectedItem(null)}>
-                Yopish
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Tahrirlash modali */}
-      {editItem && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl shadow-lg w-[90%] max-w-md space-y-3">
-            <h2 className="text-lg font-semibold">Dorini tahrirlash</h2>
-            <input
-              className="input"
-              value={editItem.name}
-              onChange={(e) =>
-                setEditItem({ ...editItem, name: e.target.value })
-              }
-            />
-            <input
-              className="input"
-              type="number"
-              value={editItem.salePrice}
-              onChange={(e) =>
-                setEditItem({
-                  ...editItem,
-                  salePrice: Number(e.target.value),
-                })
-              }
-            />
-            <input
-              className="input"
-              type="number"
-              value={editItem.stock}
-              onChange={(e) =>
-                setEditItem({
-                  ...editItem,
-                  stock: Number(e.target.value),
-                })
-              }
-            />
-            <div className="flex justify-end gap-2 mt-3">
-              <button className="btn" onClick={() => setEditItem(null)}>
-                Bekor qilish
-              </button>
-              <button className="btn-primary" onClick={saveEdit}>
-                Saqlash
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* O‘chirish modali */}
-      {deleteItem && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl shadow-lg w-[90%] max-w-md">
-            <h2 className="text-lg font-semibold text-center mb-4">
-              {deleteItem.name} dorisini o‘chirishni xohlaysizmi?
-            </h2>
-            <div className="flex justify-center gap-4">
-              <button
-                className="btn border-green-300 text-green-600"
-                onClick={() => setDeleteItem(null)}
-              >
-                Yo‘q
-              </button>
-              <button
-                className="btn border-red-300 text-red-600"
-                onClick={confirmDelete}
-              >
-                Ha, o‘chirilsin
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

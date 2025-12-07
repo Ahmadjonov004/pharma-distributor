@@ -1,103 +1,144 @@
-import { Routes, Route, NavLink, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import Dashboard from './pages/Dashboard'
-import Inventory from './pages/Inventory'
-import Distribute from './pages/Distribute'
-import Pharmacies from './pages/Pharmacies'
-import Reports from './pages/Reports'
-import Settings from './pages/Settings'
-import SupplierAnalytics from './pages/SupplierAnalytics'
-import Auth from './pages/Auth'
-import { Home, Package, Truck, Building2, BarChart3, Settings as Cog, Factory, LogOut } from 'lucide-react'
-import SyncStatus from './components/SyncStatus'
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { DataProvider } from './context/DataContext';
 
-interface User {
-  id: string
-  name: string
-  email: string
-}
+// Pages
+import Auth from './pages/Auth';
+import Dashboard from './pages/Dashboard';
+import Inventory from './pages/Inventory';
+import Distribute from './pages/Distribute';
+import Pharmacies from './pages/Pharmacies';
+import Suppliers from './pages/Suppliers';
+import Reports from './pages/Reports';
+import Settings from './pages/Settings';
+import SupplierAnalytics from './pages/SupplierAnalytics';
 
-function Frame() {
-  const [user, setUser] = useState<User | null>(null)
-  const navigate = useNavigate()
+// Icons
+import {
+  Home,
+  Package,
+  Truck,
+  Building2,
+  BarChart3,
+  Settings as Cog,
+  Factory,
+  LogOut,
+  Menu,
+  X,
+} from 'lucide-react';
+import { useState } from 'react';
+
+function AppLayout() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
-    // Login qilingan foydalanuvchini olish
-    const currentUser = localStorage.getItem('pharma_currentUser')
-    if (currentUser) {
-      setUser(JSON.parse(currentUser))
-    } else {
-      navigate('/auth')
+    if (!user) {
+      navigate('/auth');
     }
-  }, [navigate])
-
-  const handleLogout = () => {
-    localStorage.removeItem('pharma_currentUser')
-    setUser(null)
-    navigate('/auth')
-  }
+  }, [user, navigate]);
 
   if (!user) {
-    return <Auth />
+    return null;
   }
-  const nav=[
-    {to:'/',label:'Boshqaruv paneli',icon:Home},
-    {to:'/inventory',label:'Ombor',icon:Package},
-    {to:'/distribute',label:'Tarqatish',icon:Truck},
-    {to:'/pharmacies',label:'Dorixonalar',icon:Building2},
-    {to:'/suppliers',label:'Firmalar',icon:Factory},
-    {to:'/reports',label:'Hisobotlar',icon:BarChart3},
-    {to:'/settings',label:'Sozlamalar',icon:Cog}
-  ]
+
+  const navItems = [
+    { to: '/', label: 'Dashboard', icon: Home },
+    { to: '/inventory', label: 'Inventory', icon: Package },
+    { to: '/distribute', label: 'Distribute', icon: Truck },
+    { to: '/pharmacies', label: 'Pharmacies', icon: Building2 },
+    { to: '/suppliers', label: 'Suppliers', icon: Factory },
+    { to: '/reports', label: 'Reports', icon: BarChart3 },
+    { to: '/settings', label: 'Settings', icon: Cog },
+  ];
+
+  const handleLogout = () => {
+    logout();
+    navigate('/auth');
+  };
+
   return (
-    <div className='min-h-screen grid md:grid-cols-[240px_1fr] bg-slate-50'>
-      <aside className='bg-white shadow-lg md:sticky md:top-0 h-full border-r flex flex-col'>
-        <div className='p-5 border-b'>
-          <div className='text-xl font-semibold text-slate-700'>💊 Narimon Pharma</div>
-          <div className='mt-2 flex items-center justify-between gap-3'>
-            <div className='text-xs text-slate-500'>Asilbek</div>
-            <div>
-              <SyncStatus />
-            </div>
-          </div>
+    <div className="flex h-screen bg-gray-100">
+      {/* Sidebar */}
+      <aside
+        className={`${
+          sidebarOpen ? 'w-64' : 'w-0'
+        } bg-slate-800 text-white transition-all duration-300 overflow-hidden`}
+      >
+        <div className="p-6">
+          <h1 className="text-2xl font-bold">Pharma</h1>
+          <p className="text-sm text-gray-400">Distributor</p>
         </div>
-        <nav className='p-3 space-y-1 flex-1'>
-          {nav.map(n=>{ const Icon=n.icon as any; return (
-            <NavLink key={n.to} to={n.to} end={n.to==='/' } className={({isActive})=>`flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200 hover:bg-slate-100 ${isActive?'bg-slate-200 text-slate-900 font-semibold':'text-slate-600'}`}>
-              <Icon size={18}/> {n.label}
-            </NavLink>
-          )})}
+
+        <nav className="mt-8">
+          {navItems.map(({ to, label, icon: Icon }) => (
+            <a
+              key={to}
+              href={to}
+              className="flex items-center gap-3 px-6 py-3 text-gray-300 hover:bg-slate-700 hover:text-white transition"
+            >
+              <Icon size={20} />
+              <span>{label}</span>
+            </a>
+          ))}
         </nav>
 
-        {/* Foydalanuvchi ma'lumoti va Logout */}
-        <div className='p-4 border-t space-y-3'>
-          <div className='bg-blue-50 rounded-lg p-3'>
-            <p className='text-xs text-slate-500'>Tizimga kirgan:</p>
-            <p className='text-sm font-semibold text-slate-800 truncate'>{user?.name}</p>
-            <p className='text-xs text-slate-600 truncate'>{user?.email}</p>
-          </div>
+        <div className="absolute bottom-6 left-0 right-0 px-6">
           <button
             onClick={handleLogout}
-            className='w-full flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition font-semibold'
+            className="flex items-center gap-3 w-full px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-white transition"
           >
-            <LogOut size={18} />
-            Chiqish
+            <LogOut size={20} />
+            <span>Logout</span>
           </button>
         </div>
       </aside>
-      <main className='p-4 md:p-8 w-full'>
-        <Routes>
-          <Route path='/auth' element={<Auth/>}/>
-          <Route path='/' element={<Dashboard/>}/>
-          <Route path='/inventory' element={<Inventory/>}/>
-          <Route path='/distribute' element={<Distribute/>}/>
-          <Route path='/pharmacies' element={<Pharmacies/>}/>
-          <Route path='/suppliers' element={<SupplierAnalytics/>}/>
-          <Route path='/reports' element={<Reports/>}/>
-          <Route path='/settings' element={<Settings/>}/>
-        </Routes>
-      </main>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 hover:bg-gray-100 rounded"
+          >
+            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          <div className="text-right">
+            <p className="text-sm text-gray-600">Welcome,</p>
+            <p className="font-semibold">{user.username}</p>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-auto p-6">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/inventory" element={<Inventory />} />
+            <Route path="/distribute" element={<Distribute />} />
+            <Route path="/pharmacies" element={<Pharmacies />} />
+            <Route path="/suppliers" element={<Suppliers />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/supplier-analytics" element={<SupplierAnalytics />} />
+          </Routes>
+        </main>
+      </div>
     </div>
-  )
+  );
 }
-export default function App(){ return <Frame/> }
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <DataProvider>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/*" element={<AppLayout />} />
+        </Routes>
+      </DataProvider>
+    </AuthProvider>
+  );
+}

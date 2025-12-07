@@ -1,249 +1,94 @@
-import type { Medicine, Pharmacy, Distribution } from './types';
+import axios from 'axios';
 
-// Hozirgi foydalanuvchini olish (xato handling bilan)
-const getCurrentUser = () => {
-  try {
-    const user = localStorage.getItem('pharma_currentUser')
-    return user ? JSON.parse(user) : null
-  } catch (err) {
-    console.error('Error reading current user:', err)
-    return null
-  }
-}
+const API_URL = (import.meta.env as any).VITE_API_BASE_URL || 'http://localhost:4000';
 
-// Foydalanuvchi ma'lumotlar bazasini olish (xato handling bilan)
-const getUserData = () => {
-  try {
-    const user = getCurrentUser()
-    if (!user) return null
-    const data = localStorage.getItem(`pharma_data_${user.id}`)
-    return data ? JSON.parse(data) : {
-      medicines: [],
-      pharmacies: [],
-      distributions: [],
-      settings: { currency: 'UZS', distributorName: 'Pharma Distributor' }
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Request interceptor - token qo'shish
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  } catch (err) {
-    console.error('Error reading user data:', err)
-    return {
-      medicines: [],
-      pharmacies: [],
-      distributions: [],
-      settings: { currency: 'UZS', distributorName: 'Pharma Distributor' }
-    }
-  }
-}
-
-// Foydalanuvchi ma'lumotlar bazasini saqlash (xato handling bilan)
-const saveUserData = (data: any) => {
-  try {
-    const user = getCurrentUser()
-    if (!user) return
-    localStorage.setItem(`pharma_data_${user.id}`, JSON.stringify(data))
-  } catch (err) {
-    console.error('Error saving user data:', err)
-  }
-}
-
-export const api = {
-  listMedicines: async (): Promise<Medicine[]> => {
-    const userDB = getUserData()
-    return userDB?.medicines || []
+    return config;
   },
+  (error) => Promise.reject(error)
+);
 
-  createMedicine: async (
-    m: Omit<Medicine, 'id' | 'createdAt'>
-  ): Promise<Medicine> => {
-    const newMedicine: Medicine = {
-      ...m,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString()
-    }
-    const userDB = getUserData()
-    if (!userDB) throw new Error('Not authenticated')
-    const updated = {
-      ...userDB,
-      medicines: [...(userDB?.medicines || []), newMedicine]
-    }
-    saveUserData(updated)
-    return newMedicine
-  },
+// Response interceptor - token refresh qilish
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
 
-  updateMedicine: async (
-    id: string,
-    patch: Partial<Medicine>
-  ): Promise<Medicine> => {
-    const userDB = getUserData()
-    if (!userDB) throw new Error('Not authenticated')
-    const medicines = userDB?.medicines || []
-    const index = medicines.findIndex((m: Medicine) => m.id === id)
-    if (index === -1) throw new Error('Medicine not found')
-    medicines[index] = { ...medicines[index], ...patch }
-    saveUserData({ ...userDB, medicines })
-    return medicines[index]
-  },
+    // Agar 403 xatosi bo'lsa va refresh qilmagan bo'lsa
+    if (error.response?.status === 403 && !originalRequest._retry) {
+      originalRequest._retry = true;
 
-  deleteMedicine: async (id: string): Promise<void> => {
-    const userDB = getUserData()
-    if (!userDB) throw new Error('Not authenticated')
-    const medicines = userDB?.medicines || []
-    const filtered = medicines.filter((m: Medicine) => m.id !== id)
-    saveUserData({ ...userDB, medicines: filtered })
-  },
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) {
+          throw new Error('No refresh token');
+        }
 
-  listPharmacies: async (): Promise<Pharmacy[]> => {
-    const userDB = getUserData()
-    return userDB?.pharmacies || []
-  },
+        const response = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
+        const { token } = response.data;
 
-  createPharmacy: async (
-    p: Omit<Pharmacy, 'id' | 'createdAt'>
-  ): Promise<Pharmacy> => {
-    const newPharmacy: Pharmacy = {
-      ...p,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString()
-    }
-    const userDB = getUserData()
-    if (!userDB) throw new Error('Not authenticated')
-    const updated = {
-      ...userDB,
-      pharmacies: [...(userDB?.pharmacies || []), newPharmacy]
-    }
-    saveUserData(updated)
-    return newPharmacy
-  },
+        localStorage.setItem('token', token);
+        api.defaults.headers.common.Authorization = `Bearer ${token}`;
+        originalRequest.headers.Authorization = `Bearer ${token}`;
 
-  updatePharmacy: async (id: string, patch: Partial<Pharmacy>): Promise<Pharmacy> => {
-    const userDB = getUserData()
-    if (!userDB) throw new Error('Not authenticated')
-    const pharmacies = userDB?.pharmacies || []
-    const index = pharmacies.findIndex((p: Pharmacy) => p.id === id)
-    if (index === -1) throw new Error('Pharmacy not found')
-    pharmacies[index] = { ...pharmacies[index], ...patch }
-    saveUserData({ ...userDB, pharmacies })
-    return pharmacies[index]
-  },
-
-  deletePharmacy: async (id: string): Promise<void> => {
-    const userDB = getUserData()
-    if (!userDB) throw new Error('Not authenticated')
-    const pharmacies = userDB?.pharmacies || []
-    const filtered = pharmacies.filter((p: Pharmacy) => p.id !== id)
-    saveUserData({ ...userDB, pharmacies: filtered })
-  },
-
-  listDistributions: async (): Promise<Distribution[]> => {
-    const userDB = getUserData()
-    return userDB?.distributions || []
-  },
-
-  createDistribution: async (
-    d: Omit<Distribution, 'id'>
-  ): Promise<Distribution> => {
-    const newDistribution: Distribution = {
-      ...d,
-      id: Date.now().toString()
-    }
-    const userDB = getUserData()
-    if (!userDB) throw new Error('Not authenticated')
-    const updated = {
-      ...userDB,
-      distributions: [...(userDB?.distributions || []), newDistribution]
-    }
-    saveUserData(updated)
-    return newDistribution
-  },
-
-  deleteDistribution: async (id: string): Promise<void> => {
-    const userDB = getUserData()
-    if (!userDB) throw new Error('Not authenticated')
-    const distributions = userDB?.distributions || []
-    const filtered = distributions.filter((d: Distribution) => d.id !== id)
-    saveUserData({ ...userDB, distributions: filtered })
-  },
-
-  getKPI: async (): Promise<{
-    monthTurnover: number;
-    monthProfit: number;
-    totalPharmacies: number;
-    totalSKUs: number;
-    currency: 'UZS' | 'USD';
-  }> => {
-    const userDB = getUserData()
-    if (!userDB) return { monthTurnover: 0, monthProfit: 0, totalPharmacies: 0, totalSKUs: 0, currency: 'UZS' }
-    
-    const medicines = userDB?.medicines || []
-    const pharmacies = userDB?.pharmacies || []
-    const distributions = userDB?.distributions || []
-
-    let monthTurnover = 0
-    let monthProfit = 0
-
-    const now = new Date()
-    const currentMonth = now.getMonth()
-    const currentYear = now.getFullYear()
-
-    distributions.forEach((d: Distribution) => {
-      const distDate = new Date(d.date)
-      if (distDate.getMonth() === currentMonth && distDate.getFullYear() === currentYear) {
-        d.items.forEach(item => {
-          const med = medicines.find((m: Medicine) => m.id === item.medicineId)
-          if (med) {
-            monthTurnover += item.quantity * item.unitPrice
-            const profit = item.quantity * (item.unitPrice - med.purchasePrice)
-            monthProfit += profit
-          }
-        })
+        return api(originalRequest);
+      } catch (refreshError) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/auth';
+        return Promise.reject(refreshError);
       }
-    })
-
-    return {
-      monthTurnover,
-      monthProfit,
-      totalPharmacies: pharmacies.length,
-      totalSKUs: medicines.length,
-      currency: 'UZS'
     }
-  },
 
-  exportCSV: () => {
-    const userDB = getUserData()
-    if (!userDB) return
+    return Promise.reject(error);
+  }
+);
 
-    const medicines = userDB?.medicines || []
-    const pharmacies = userDB?.pharmacies || []
-    const distributions = userDB?.distributions || []
+// ===== AUTH API =====
+export const authAPI = {
+  register: (username: string, password: string) =>
+    api.post('/auth/register', { username, password }),
 
-    // Create CSV headers
-    const headers = ['Sana', 'Dorixona', 'Dori nomi', 'Soni', 'Narxi', 'Chegirma', 'Jami']
-    const rows: string[] = []
+  login: (username: string, password: string) =>
+    api.post('/auth/login', { username, password }),
 
-    // Add data rows
-    distributions.forEach((d: Distribution) => {
-      const pharmacy = pharmacies.find((p: Pharmacy) => p.id === d.pharmacyId)?.name || 'Noma\'lum'
-      d.items.forEach((item) => {
-        const medicine = medicines.find((m: Medicine) => m.id === item.medicineId)?.name || 'Noma\'lum'
-        const date = new Date(d.date).toLocaleDateString('uz-UZ')
-        const total = item.quantity * item.unitPrice - (item.discount || 0)
-        rows.push(
-          `"${date}","${pharmacy}","${medicine}",${item.quantity},${item.unitPrice},${item.discount || 0},${total}`
-        )
-      })
-    })
-
-    // Create CSV content
-    const csvContent = [headers.join(','), ...rows].join('\n')
-
-    // Download file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', `tarqatishlar_${new Date().toISOString().split('T')[0]}.csv`)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  },
+  refresh: (refreshToken: string) =>
+    api.post('/auth/refresh', { refreshToken }),
 };
+
+// ===== PRODUCTS API =====
+export const productsAPI = {
+  getAll: () => api.get('/products'),
+
+  create: (data: { name: string; description?: string; price: number; quantity?: number }) =>
+    api.post('/products', data),
+
+  update: (id: string, data: any) =>
+    api.put(`/products/${id}`, data),
+
+  delete: (id: string) =>
+    api.delete(`/products/${id}`),
+};
+
+// ===== ORDERS API =====
+export const ordersAPI = {
+  getAll: () => api.get('/orders'),
+
+  create: (data: { products: string[]; total: number }) =>
+    api.post('/orders', data),
+};
+
+export default api;
